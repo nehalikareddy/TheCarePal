@@ -77,6 +77,18 @@ io.on('connection', (socket) => {
       socket.leave(`patient_${patientId}`);
     }
   });
+
+  socket.on('joinUserRoom', (userId) => {
+    if (userId) {
+      socket.join(`user_${userId}`);
+    }
+  });
+
+  socket.on('leaveUserRoom', (userId) => {
+    if (userId) {
+      socket.leave(`user_${userId}`);
+    }
+  });
 });
 
 app.use(cors(corsOptions));

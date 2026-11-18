@@ -8,6 +8,7 @@ import {
   Users,
   RefreshCw,
   UserMinus,
+  UserCheck,
   Shield,
   X,
   AlertCircle
@@ -28,9 +29,21 @@ export default function PatientBanner({
   // Care Team Modal State
   const [isCareTeamOpen, setIsCareTeamOpen] = useState(false);
   const [members, setMembers] = useState([]);
+  const [pendingMembers, setPendingMembers] = useState([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [teamMessage, setTeamMessage] = useState({ text: '', type: 'info' });
+
+  // Load team members and pending approvals for family
+  useEffect(() => {
+    if (!patient?._id || userRole !== 'family') return;
+    api.get(`/patients/${patient._id}/members`)
+      .then((res) => {
+        setMembers(res.data.members || []);
+        setPendingMembers(res.data.pendingMembers || []);
+      })
+      .catch(() => {});
+  }, [patient?._id, userRole]);
 
   if (!patient) return null;
 
@@ -48,6 +61,7 @@ export default function PatientBanner({
     try {
       const res = await api.get(`/patients/${patient._id}/members`);
       setMembers(res.data.members || []);
+      setPendingMembers(res.data.pendingMembers || []);
     } catch (err) {
       console.error('Failed to fetch care team members:', err);
       setTeamMessage({ text: 'Failed to load team members.', type: 'error' });
@@ -59,6 +73,40 @@ export default function PatientBanner({
   const handleOpenCareTeam = () => {
     setIsCareTeamOpen(true);
     fetchMembers();
+  };
+
+  const handleApprovePending = async (userId, memberName) => {
+    setActionLoading(true);
+    try {
+      const res = await api.post(`/patients/${patient._id}/requests/${userId}/approve`);
+      setMembers(res.data.members || []);
+      setPendingMembers(res.data.pendingMembers || []);
+      setTeamMessage({ text: `Approved ${memberName} to join care team.`, type: 'success' });
+    } catch (err) {
+      setTeamMessage({
+        text: err.response?.data?.message || 'Failed to approve request',
+        type: 'error'
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRejectPending = async (userId, memberName) => {
+    setActionLoading(true);
+    try {
+      const res = await api.post(`/patients/${patient._id}/requests/${userId}/reject`);
+      setMembers(res.data.members || []);
+      setPendingMembers(res.data.pendingMembers || []);
+      setTeamMessage({ text: `Declined request for ${memberName}.`, type: 'info' });
+    } catch (err) {
+      setTeamMessage({
+        text: err.response?.data?.message || 'Failed to reject request',
+        type: 'error'
+      });
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleRemoveMember = async (memberId, memberName) => {
@@ -208,11 +256,16 @@ export default function PatientBanner({
             <button
               type="button"
               onClick={handleOpenCareTeam}
-              className="col-span-1 flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-full bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 font-heading min-h-[44px] active:scale-[0.98]"
+              className="col-span-1 flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-full bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 font-heading min-h-[44px] active:scale-[0.98] relative"
               title="Manage linked caregivers & security"
             >
               <Users className="w-4 h-4 text-[#3fb6ad] shrink-0" />
               <span>Care Team</span>
+              {pendingMembers.length > 0 && (
+                <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-slate-950 font-heading animate-pulse">
+                  {pendingMembers.length} Pending
+                </span>
+              )}
             </button>
           )}
 
@@ -268,6 +321,60 @@ export default function PatientBanner({
               >
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{teamMessage.text}</span>
+              </div>
+            )}
+
+            {/* Pending Caregiver Approval Requests */}
+            {pendingMembers.length > 0 && (
+              <div className="mt-4 p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-500/30">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900 font-heading">
+                    Pending Approval Requests ({pendingMembers.length})
+                  </h4>
+                </div>
+
+                <div className="space-y-2.5">
+                  {pendingMembers.map((reqItem) => (
+                    <div
+                      key={reqItem.userId || reqItem._id}
+                      className="p-3 rounded-2xl bg-white border border-amber-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900 font-heading truncate">
+                            {reqItem.name}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-heading bg-amber-100 text-amber-900">
+                            {reqItem.role || 'caregiver'}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-500 block truncate mt-0.5">
+                          {reqItem.email}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleApprovePending(reqItem.userId || reqItem._id, reqItem.name)}
+                          disabled={actionLoading}
+                          className="px-3.5 py-1.5 rounded-full text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all min-h-[38px] font-heading shadow-xs"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRejectPending(reqItem.userId || reqItem._id, reqItem.name)}
+                          disabled={actionLoading}
+                          className="px-3.5 py-1.5 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 active:scale-95 transition-all min-h-[38px] font-heading"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

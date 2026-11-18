@@ -36,7 +36,15 @@ export default function PairPatientModal({ isOpen, onClose, onPatientLinked, use
     setLoading(true);
     try {
       const res = await api.post('/patients/join', { careCode: careCode.trim() });
-      onPatientLinked(res.data.patient);
+      if (res.data.pending) {
+        onPatientLinked({
+          ...res.data.patient,
+          pending: true,
+          message: res.data.message
+        });
+      } else {
+        onPatientLinked(res.data.patient);
+      }
       onClose();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to link patient with this Care Code.');

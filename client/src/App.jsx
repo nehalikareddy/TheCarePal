@@ -7,13 +7,31 @@ import FamilyView from './components/FamilyView';
 import PairPatientModal from './components/PairPatientModal';
 
 import api from './services/api';
-import { initSocket, joinPatientRoom, leavePatientRoom } from './services/socket';
+import {
+  initSocket,
+  joinPatientRoom,
+  leavePatientRoom,
+  joinUserRoom,
+  leaveUserRoom,
+} from './services/socket';
 import {
   requestNotificationPermission,
   sendBrowserNotification,
   playNotificationChime,
 } from './utils/notifications';
-import { HeartHandshake, PlusCircle } from 'lucide-react';
+import {
+  initAudioOnUserInteraction,
+  playApprovalChime,
+} from './utils/notificationSound';
+import {
+  HeartHandshake,
+  PlusCircle,
+  UserCheck,
+  Clock,
+  Shield,
+  CheckCircle2,
+  AlertCircle,
+} from 'lucide-react';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -25,13 +43,22 @@ export default function App() {
   const [isPairModalOpen, setIsPairModalOpen] = useState(false);
   const [liveAlert, setLiveAlert] = useState(null);
 
+  // Caregiver Access Approval Workflow States
+  const [pendingRequests, setPendingRequests] = useState([]); // Family view: incoming caregiver requests
+  const [pendingApprovals, setPendingApprovals] = useState([]); // Caretaker view: requested patients awaiting approval
+
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
 
   // Key to force refresh child views on socket events
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // 1. Initial Authentication & Profile Load
+  // 1. Unlock browser Web Audio API on first user interaction
+  useEffect(() => {
+    initAudioOnUserInteraction();
+  }, []);
+
+  // 2. Initial Authentication & Profile Load
   useEffect(() => {
     requestNotificationPermission();
 
@@ -48,13 +75,23 @@ export default function App() {
         const userData = res.data.user;
         setUser(userData);
 
-        // Fetch patients
+        // Fetch user's approved patients
         const patRes = await api.get('/patients');
         const patientList = patRes.data.patients || [];
         setPatients(patientList);
 
         if (patientList.length > 0) {
           setCurrentPatient(patientList[0]);
+        }
+
+        // If caretaker, fetch any pending approval requests across page refreshes
+        if (userData.role === 'caretaker') {
+          try {
+            const pendingRes = await api.get('/patients/my-pending');
+            setPendingApprovals(pendingRes.data.pending || []);
+          } catch (e) {
+            console.error('Failed to load pending caretaker approvals:', e);
+          }
         }
       } catch (err) {
         console.error('Session expired or invalid token:', err);
@@ -69,7 +106,27 @@ export default function App() {
     fetchProfile();
   }, [token]);
 
-  // 2. Setup Socket.IO for Real-Time Sync
+  // 3. For Family: Fetch existing pending approval requests when currentPatient changes
+  useEffect(() => {
+    if (!currentPatient || user?.role !== 'family') return;
+
+    api
+      .get(`/patients/${currentPatient._id}/members`)
+      .then((res) => {
+        if (res.data.pendingMembers && res.data.pendingMembers.length > 0) {
+          setPendingRequests(
+            res.data.pendingMembers.map((pm) => ({
+              patientId: currentPatient._id,
+              patientName: currentPatient.name,
+              request: pm,
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+  }, [currentPatient, user]);
+
+  // 4. Setup Socket.IO for Real-Time Sync & Direct User Alerts
   useEffect(() => {
     const socket = initSocket();
 
@@ -83,32 +140,75 @@ export default function App() {
       setIsSocketConnected(true);
     }
 
-    // Room join when currentPatient changes
+    // Join patient room
     if (currentPatient) {
       joinPatientRoom(currentPatient._id);
     }
 
-    // Listen for live updates
+    // Join user's private notification room
+    if (user?._id) {
+      joinUserRoom(user._id);
+    }
+
+    // Listen for schedule & handover updates
     const handleScheduleUpdated = (payload) => {
       console.log('Real-time sync event received:', payload);
       setRefreshTrigger((prev) => prev + 1);
     };
 
-    const handleCaregiverJoined = (data) => {
-      if (user?.role === 'family' && data?.user && String(data.user._id) !== String(user._id)) {
-        setLiveAlert({
-          type: 'join',
-          message: `${data.user.name} (${data.user.role || 'caregiver'}) joined ${data.patientName || 'the'}'s care team.`
+    // Family Approval Workflow: Caregiver requests access
+    const handleAccessRequested = (data) => {
+      if (user?.role === 'family') {
+        playApprovalChime();
+        setPendingRequests((prev) => {
+          const exists = prev.some(
+            (r) =>
+              String(r.patientId) === String(data.patientId) &&
+              String(r.request?.userId) === String(data.request?.userId)
+          );
+          if (exists) return prev;
+          return [data, ...prev];
         });
         setRefreshTrigger((prev) => prev + 1);
       }
     };
 
+    // Caretaker View: Family approved caretaker access
+    const handleAccessApproved = (data) => {
+      if (data.patient) {
+        setPatients((prev) => {
+          const exists = prev.find((p) => String(p._id) === String(data.patient._id));
+          return exists ? prev : [...prev, data.patient];
+        });
+        setCurrentPatient(data.patient);
+      }
+      setPendingApprovals((prev) =>
+        prev.filter((p) => String(p._id) !== String(data.patientId || data.patient?._id))
+      );
+      setLiveAlert({
+        type: 'success',
+        message: `Access approved! You can now view ${data.patientName || data.patient?.name}'s schedule.`,
+      });
+      setRefreshTrigger((prev) => prev + 1);
+    };
+
+    // Caretaker View: Family declined caretaker access
+    const handleAccessRejected = (data) => {
+      setPendingApprovals((prev) =>
+        prev.filter((p) => String(p._id) !== String(data.patientId))
+      );
+      setLiveAlert({
+        type: 'warning',
+        message: `Your access request for ${data.patientName || 'the patient'} was declined by the family.`,
+      });
+    };
+
+    // Access revoked by family
     const handleAccessRevoked = (data) => {
       if (String(data.revokedUserId) === String(user?._id)) {
         setLiveAlert({
           type: 'revoked',
-          message: 'Your access to this patient was revoked by the family.'
+          message: 'Your access to this patient was revoked by the family.',
         });
         setPatients((prev) => {
           const remaining = prev.filter((p) => String(p._id) !== String(data.patientId));
@@ -120,6 +220,7 @@ export default function App() {
       }
     };
 
+    // Patient profile updated (e.g. rotated Care Code)
     const handlePatientUpdated = (updatedPatient) => {
       if (!updatedPatient) return;
       setPatients((prev) =>
@@ -133,7 +234,10 @@ export default function App() {
 
     socket.on('scheduleUpdated', handleScheduleUpdated);
     socket.on('handoverAdded', handleScheduleUpdated);
-    socket.on('caregiverJoined', handleCaregiverJoined);
+    socket.on('careTeamUpdated', handleScheduleUpdated);
+    socket.on('accessRequested', handleAccessRequested);
+    socket.on('accessApproved', handleAccessApproved);
+    socket.on('accessRejected', handleAccessRejected);
     socket.on('accessRevoked', handleAccessRevoked);
     socket.on('patientUpdated', handlePatientUpdated);
 
@@ -142,16 +246,22 @@ export default function App() {
       socket.off('disconnect', onDisconnect);
       socket.off('scheduleUpdated', handleScheduleUpdated);
       socket.off('handoverAdded', handleScheduleUpdated);
-      socket.off('caregiverJoined', handleCaregiverJoined);
+      socket.off('careTeamUpdated', handleScheduleUpdated);
+      socket.off('accessRequested', handleAccessRequested);
+      socket.off('accessApproved', handleAccessApproved);
+      socket.off('accessRejected', handleAccessRejected);
       socket.off('accessRevoked', handleAccessRevoked);
       socket.off('patientUpdated', handlePatientUpdated);
       if (currentPatient) {
         leavePatientRoom(currentPatient._id);
       }
+      if (user?._id) {
+        leaveUserRoom(user._id);
+      }
     };
   }, [currentPatient, user]);
 
-  // 3. 30-Second Notification Reminder Interval
+  // 5. 30-Second Notification Reminder Interval
   useEffect(() => {
     if (!currentPatient) return;
 
@@ -174,7 +284,7 @@ export default function App() {
           playNotificationChime();
           sendBrowserNotification(`Time for ${matchingDose.name} (${matchingDose.strength})!`, {
             body: `Scheduled at ${matchingDose.scheduledTime} for ${currentPatient.name}. Please administer.`,
-            tag: `dose-${matchingDose.doseId}`
+            tag: `dose-${matchingDose.doseId}`,
           });
         }
       } catch (err) {
@@ -196,6 +306,11 @@ export default function App() {
       if (patientList.length > 0) {
         setCurrentPatient(patientList[0]);
       }
+
+      if (userData.role === 'caretaker') {
+        const pendingRes = await api.get('/patients/my-pending');
+        setPendingApprovals(pendingRes.data.pending || []);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -208,15 +323,75 @@ export default function App() {
     setToken('');
     setPatients([]);
     setCurrentPatient(null);
+    setPendingRequests([]);
+    setPendingApprovals([]);
   };
 
-  const handlePatientLinked = (newPatient) => {
+  const handlePatientLinked = (patientOrPending) => {
+    if (patientOrPending.pending) {
+      setPendingApprovals((prev) => {
+        const exists = prev.find((p) => String(p._id) === String(patientOrPending._id));
+        if (exists) return prev;
+        return [...prev, patientOrPending];
+      });
+      setLiveAlert({
+        type: 'info',
+        message: patientOrPending.message || 'Request sent! Waiting for family approval.',
+      });
+      return;
+    }
+
     setPatients((prev) => {
-      const exists = prev.find((p) => p._id === newPatient._id);
+      const exists = prev.find((p) => String(p._id) === String(patientOrPending._id));
       if (exists) return prev;
-      return [...prev, newPatient];
+      return [...prev, patientOrPending];
     });
-    setCurrentPatient(newPatient);
+    setCurrentPatient(patientOrPending);
+  };
+
+  // Family actions to approve / reject incoming access requests
+  const handleApproveAccessRequest = async (patientId, userId) => {
+    try {
+      await api.post(`/patients/${patientId}/requests/${userId}/approve`);
+      setPendingRequests((prev) =>
+        prev.filter(
+          (r) =>
+            !(
+              String(r.patientId) === String(patientId) &&
+              String(r.request?.userId) === String(userId)
+            )
+        )
+      );
+      setLiveAlert({
+        type: 'success',
+        message: 'Caregiver access approved successfully.',
+      });
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to approve caregiver access');
+    }
+  };
+
+  const handleRejectAccessRequest = async (patientId, userId) => {
+    try {
+      await api.post(`/patients/${patientId}/requests/${userId}/reject`);
+      setPendingRequests((prev) =>
+        prev.filter(
+          (r) =>
+            !(
+              String(r.patientId) === String(patientId) &&
+              String(r.request?.userId) === String(userId)
+            )
+        )
+      );
+      setLiveAlert({
+        type: 'info',
+        message: 'Caregiver access request rejected.',
+      });
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to reject caregiver access');
+    }
   };
 
   if (loadingInitial) {
@@ -244,19 +419,123 @@ export default function App() {
 
       {/* Main Container: Mobile-First Max-W-3xl */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6">
+        {/* Family View: Real-Time Incoming Caregiver Approval Request Banners */}
+        {user.role === 'family' &&
+          pendingRequests.map((reqItem) => (
+            <div
+              key={`req-${reqItem.patientId}-${reqItem.request?.userId}`}
+              className="mb-4 p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-500/40 text-slate-800 shadow-md animate-in fade-in flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-800 flex items-center justify-center shrink-0">
+                  <UserCheck className="w-5 h-5 text-amber-700" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-white px-2 py-0.5 rounded-full font-heading">
+                      Access Requested
+                    </span>
+                    <span className="text-xs text-slate-600 font-medium truncate">
+                      for <strong className="text-slate-900">{reqItem.patientName}</strong>
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold text-[#101820] font-heading mt-0.5 truncate">
+                    {reqItem.request?.name}{' '}
+                    <span className="text-xs font-normal text-slate-500">
+                      ({reqItem.request?.email})
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleApproveAccessRequest(reqItem.patientId, reqItem.request?.userId)
+                  }
+                  className="flex-1 sm:flex-none px-4 py-2 rounded-full text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 min-h-[40px] font-heading active:scale-95 transition-all shadow-sm"
+                >
+                  Approve
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleRejectAccessRequest(reqItem.patientId, reqItem.request?.userId)
+                  }
+                  className="flex-1 sm:flex-none px-4 py-2 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 min-h-[40px] font-heading active:scale-95 transition-all"
+                >
+                  Reject
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPendingRequests((prev) =>
+                      prev.filter(
+                        (r) =>
+                          !(
+                            String(r.patientId) === String(reqItem.patientId) &&
+                            String(r.request?.userId) === String(reqItem.request?.userId)
+                          )
+                      )
+                    )
+                  }
+                  className="p-2 text-slate-400 hover:text-slate-600 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-full"
+                  title="Dismiss alert"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          ))}
+
+        {/* Caretaker View: Awaiting Family Approval Status Card */}
+        {user.role === 'caretaker' && pendingApprovals.length > 0 && (
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 shadow-sm animate-in fade-in">
+            <div className="flex items-start gap-3.5">
+              <div className="p-2 bg-amber-200/80 rounded-xl text-amber-800 shrink-0 mt-0.5">
+                <Clock className="w-5 h-5 text-amber-700" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 font-heading">
+                    Pairing Status
+                  </span>
+                  <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-heading">
+                    Pending Approval
+                  </span>
+                </div>
+                <h3 className="text-sm sm:text-base font-bold text-amber-950 font-heading mt-0.5">
+                  Awaiting Family Approval ({pendingApprovals.length})
+                </h3>
+                <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                  You have entered the Care Code for{' '}
+                  <strong>{pendingApprovals.map((p) => p.name).join(', ')}</strong>. The family administrator has been notified. Medical records and daily schedules remain protected and will unlock automatically once approved.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Real-time Care Team & Access Alert Banner */}
         {liveAlert && (
           <div
             className={`mb-4 p-3.5 rounded-2xl flex items-center justify-between gap-3 text-xs sm:text-sm font-semibold animate-in fade-in shadow-sm ${
               liveAlert.type === 'revoked'
                 ? 'bg-red-50 text-red-800 border border-red-200'
+                : liveAlert.type === 'success'
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                 : 'bg-[#3fb6ad]/15 text-[#04302c] border border-[#3fb6ad]/30'
             }`}
           >
             <div className="flex items-center gap-2 min-w-0">
               <span
                 className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                  liveAlert.type === 'revoked' ? 'bg-red-500' : 'bg-[#3fb6ad] animate-pulse'
+                  liveAlert.type === 'revoked'
+                    ? 'bg-red-500'
+                    : liveAlert.type === 'success'
+                    ? 'bg-emerald-500'
+                    : 'bg-[#3fb6ad] animate-pulse'
                 }`}
               />
               <span className="truncate">{liveAlert.message}</span>
@@ -270,7 +549,7 @@ export default function App() {
             </button>
           </div>
         )}
-        
+
         {/* Onboarding State for Users Without Any Linked Patients */}
         {!currentPatient ? (
           <div className="bg-white border border-[#e6ecf1] rounded-3xl p-8 sm:p-10 text-center shadow-[0_2px_8px_rgba(0,0,0,0.04)] my-6">

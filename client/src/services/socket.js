@@ -33,6 +33,20 @@ export function leavePatientRoom(patientId) {
   }
 }
 
+export function joinUserRoom(userId) {
+  const s = getSocket();
+  if (s && userId) {
+    s.emit('joinUserRoom', userId);
+  }
+}
+
+export function leaveUserRoom(userId) {
+  const s = getSocket();
+  if (s && userId) {
+    s.emit('leaveUserRoom', userId);
+  }
+}
+
 export function disconnectSocket() {
   if (socketInstance) {
     socketInstance.disconnect();

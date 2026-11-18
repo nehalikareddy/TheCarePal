@@ -5,7 +5,14 @@ const patientSchema = new mongoose.Schema({
   age: { type: Number, required: true },
   condition: { type: String, default: 'Home Care', trim: true },
   careCode: { type: String, required: true, unique: true, uppercase: true, trim: true },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  pendingMembers: [{
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    name: String,
+    email: String,
+    role: String,
+    requestedAt: { type: Date, default: Date.now }
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Patient', patientSchema);
