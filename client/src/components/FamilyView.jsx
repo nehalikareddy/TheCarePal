@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   FileText,
   Plus,
-  Sparkles,
   Calendar,
   Clock,
   Pill,
@@ -17,7 +16,6 @@ import {
   Trash2
 } from 'lucide-react';
 import api from '../services/api';
-import ImportPrescriptionModal from './ImportPrescriptionModal';
 import HandoverNotesPanel from './HandoverNotesPanel';
 
 export default function FamilyView({ patient, user }) {
@@ -26,8 +24,7 @@ export default function FamilyView({ patient, user }) {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'medicines' | 'handovers'
 
-  // Modals & Form
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  // Form State
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -177,22 +174,14 @@ export default function FamilyView({ patient, user }) {
           </button>
         </div>
 
-        {/* Quick Action: Add / Import AI */}
+        {/* Quick Action: Add Medicine */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setIsImportModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200 hover:bg-teal-100 transition-colors"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-            <span className="hidden sm:inline">Import AI JSON</span>
-          </button>
-
-          <button
             onClick={() => setIsAddFormOpen(!isAddFormOpen)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-teal-600 text-white hover:bg-teal-700 transition-colors shadow-xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-teal-600 text-white hover:bg-teal-700 transition-colors shadow-xs"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Add Medicine</span>
+            <span>Add Medicine</span>
           </button>
         </div>
       </div>
@@ -611,14 +600,6 @@ export default function FamilyView({ patient, user }) {
       {activeTab === 'handovers' && (
         <HandoverNotesPanel patientId={patient._id} userRole="family" />
       )}
-
-      {/* Import AI Prescription Modal */}
-      <ImportPrescriptionModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        patientId={patient._id}
-        onImportSuccess={() => fetchFamilyData()}
-      />
     </div>
   );
 }

@@ -13,7 +13,7 @@ router.get('/patient/:patientId', auth, async (req, res) => {
   }
 });
 
-// POST /api/medicines - Create medicine (or import AI JSON)
+// POST /api/medicines - Create medicine
 router.post('/', auth, async (req, res) => {
   try {
     const {

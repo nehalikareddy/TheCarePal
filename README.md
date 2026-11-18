@@ -10,7 +10,7 @@
 **TheCarePal MedSync** solves the medication-management dilemma in home care: ensuring that family members and professional caretakers stay perfectly synchronized in real time without accidental double-dosing or communication gaps.
 
 - **Dual Role-Based Portals:**
-  - **Family Portal:** Live 7-day adherence gauge, daily completion trends, transparent skipped doses feed with caregiver observations, inventory stock tracking with low-stock warnings, and an **Import AI Prescription JSON** utility.
+  - **Family Portal:** Live 7-day adherence gauge, daily completion trends, transparent skipped doses feed with caregiver observations, inventory stock tracking with low-stock warnings, and easy medication management via standard **+ Add Medicine** scheduling.
   - **Caretaker / Nurse Portal:** Mobile-first daily schedule grouped chronologically into **Morning (05:00–11:59)**, **Afternoon (12:00–16:59)**, and **Night (17:00–23:59)** with 44px+ touch-friendly **Given** and **Skipped** actions.
 - **Accidental Double-Dosing Prevention:** Strict compound indexing `(patientId, medicineId, scheduledDate, scheduledTime)` and automatic card locking immediately disable repeat submissions once a dose is logged.
 - **6-Digit Care Code Pairing:** Family members generate a unique numeric Care Code (e.g., `482910`) that caretakers enter to link patients in seconds.
@@ -107,7 +107,7 @@ For instant testing, the login screen features **Two 1-Click Demo Login Buttons*
 
 ### Medicines & Prescriptions
 - `GET /api/medicines/patient/:patientId` — All prescribed medicines
-- `POST /api/medicines` — Add medicine / Import AI Prescription JSON
+- `POST /api/medicines` — Add medicine
 - `DELETE /api/medicines/:id` — Delete medicine
 
 ### Shift Handovers
