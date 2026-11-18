@@ -189,11 +189,11 @@ export default function PatientBanner({
       </div>
 
       {/* Main Patient Banner Card */}
-      <div className="bg-[#101820] text-white rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.12)] border border-slate-700/60">
+      <div className="bg-[#101820] text-white rounded-2xl p-5 sm:p-6 shadow-[0_4px_16px_rgba(0,0,0,0.16)] border border-slate-700/60">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Patient Profile Details */}
-          <div className="flex items-start gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
               {patient.profilePicture ? (
                 <img
                   src={patient.profilePicture}
@@ -201,24 +201,19 @@ export default function PatientBanner({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="font-heading font-extrabold text-[#3fb6ad] text-base">
+                <span className="font-heading font-extrabold text-[#3fb6ad] text-lg">
                   {getInitials(patient.name)}
                 </span>
               )}
             </div>
 
             <div>
-              <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight font-heading flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight font-heading flex items-center gap-2 flex-wrap">
                 <span>{patient.name}</span>
-                <span className="text-slate-400 font-normal text-sm">({patient.age} yrs)</span>
-                {patient.createdByRelation && (
-                  <span className="text-[10px] font-bold text-teal-300 bg-white/10 px-2 py-0.5 rounded-full border border-teal-400/30 font-heading">
-                    Relation: {patient.createdByRelation}
-                  </span>
-                )}
+                <span className="text-slate-400 font-normal text-sm sm:text-base">({patient.age} yrs)</span>
               </h1>
 
-              <div className="flex flex-col gap-0.5 mt-1.5 text-xs text-slate-300 font-medium">
+              <div className="flex flex-col gap-0.5 mt-2 text-xs sm:text-[13px] text-slate-300 font-medium">
                 <div>
                   Condition: <span className="text-white font-semibold">{patient.condition || 'Home Care Assistance'}</span>
                 </div>
@@ -233,13 +228,6 @@ export default function PatientBanner({
                   </div>
                 )}
               </div>
-
-              {patient.allergies && (
-                <div className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-rose-500/20 border border-rose-400/40 text-rose-200 text-[11px] font-semibold">
-                  <AlertCircle className="w-3.5 h-3.5 text-rose-300 shrink-0" />
-                  <span>Allergies: {patient.allergies}</span>
-                </div>
-              )}
             </div>
           </div>
 

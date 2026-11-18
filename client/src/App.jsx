@@ -601,13 +601,13 @@ export default function App() {
             {overdueAlerts.map((alertItem) => (
               <div
                 key={alertItem.key}
-                className="p-3.5 sm:p-4 rounded-2xl bg-amber-500/15 border-2 border-amber-500/60 text-amber-950 shadow-md flex items-center justify-between gap-3 animate-in fade-in"
+                className="py-2.5 px-3.5 sm:py-3 sm:px-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-950 shadow-xs flex items-center justify-between gap-2.5 animate-in fade-in"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-full bg-amber-500/25 text-amber-900 flex items-center justify-center shrink-0">
-                    <AlertTriangle className="w-5 h-5 text-amber-800" />
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-900 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-4 h-4 text-amber-800" />
                   </div>
-                  <p className="text-sm font-bold text-amber-950 font-heading min-w-0">
+                  <p className="text-xs sm:text-sm font-semibold text-amber-950 font-heading min-w-0">
                     {alertItem.message}
                   </p>
                 </div>
@@ -616,7 +616,7 @@ export default function App() {
                   onClick={() =>
                     setOverdueAlerts((prev) => prev.filter((a) => a.key !== alertItem.key))
                   }
-                  className="p-2 text-amber-800 hover:text-amber-950 hover:bg-amber-200/60 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-full shrink-0 font-bold transition-colors"
+                  className="p-1 text-amber-800 hover:text-amber-950 hover:bg-amber-200/50 min-w-[28px] min-h-[28px] flex items-center justify-center rounded-lg shrink-0 text-xs font-bold transition-colors"
                   title="Dismiss alert"
                   aria-label="Dismiss alert"
                 >
