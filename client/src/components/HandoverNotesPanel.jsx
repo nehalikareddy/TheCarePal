@@ -131,22 +131,22 @@ export default function HandoverNotesPanel({ patientId, userRole }) {
                 key={note._id}
                 className="p-4 rounded-2xl border border-[#e6ecf1] bg-white hover:border-slate-300 transition-all flex flex-col gap-1.5 shadow-2xs"
               >
-                <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center justify-between text-xs flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      isNight ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      isNight ? 'bg-indigo-100 text-indigo-950 border border-indigo-300' : 'bg-amber-100 text-amber-950 border border-amber-300'
                     }`}>
-                      {isNight ? <Moon className="w-3 h-3 text-indigo-500" /> : <Sun className="w-3 h-3 text-amber-500" />}
+                      {isNight ? <Moon className="w-3 h-3 text-indigo-700 shrink-0" /> : <Sun className="w-3 h-3 text-amber-700 shrink-0" />}
                       <span>{note.shift}</span>
                     </span>
-                    <span className="font-bold text-[#101820] font-heading">{note.authorName}</span>
+                    <span className="font-bold text-slate-900 font-heading">{note.authorName}</span>
                   </div>
-                  <span className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
-                    <Clock className="w-3 h-3" />
+                  <span className="text-[11px] sm:text-xs text-slate-800 flex items-center gap-1.5 font-bold font-heading">
+                    <Clock className="w-3.5 h-3.5 text-slate-700 shrink-0" />
                     <span>{new Date(note.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} at {new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </span>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed pl-1 pt-1">
+                <p className="text-xs sm:text-sm text-slate-800 leading-relaxed pl-1 pt-1 font-medium">
                   {note.noteText}
                 </p>
               </div>

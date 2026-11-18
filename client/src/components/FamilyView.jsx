@@ -20,7 +20,7 @@ export default function FamilyView({ patient, user }) {
   const [adherenceData, setAdherenceData] = useState(null);
   const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'medicines' | 'handovers'
+  const [activeTab, setActiveTab] = useState('medicines'); // 'medicines' (default) | 'handovers' | 'overview'
   const [lightboxRx, setLightboxRx] = useState(null);
 
   // Form State
@@ -205,16 +205,6 @@ export default function FamilyView({ patient, user }) {
         {/* Full-width equal 3-column tab bar on mobile */}
         <div className="grid grid-cols-3 sm:flex w-full sm:w-auto gap-1 p-1 bg-slate-100 rounded-full text-xs sm:text-sm">
           <button
-            onClick={() => setActiveTab('overview')}
-            className={`px-2 sm:px-4 py-2 min-h-[40px] rounded-full text-[11px] sm:text-xs font-bold transition-all font-heading text-center truncate ${
-              activeTab === 'overview'
-                ? 'bg-[#101820] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Adherence
-          </button>
-          <button
             onClick={() => setActiveTab('medicines')}
             className={`px-2 sm:px-4 py-2 min-h-[40px] rounded-full text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 font-heading text-center truncate ${
               activeTab === 'medicines'
@@ -236,6 +226,16 @@ export default function FamilyView({ patient, user }) {
             }`}
           >
             Handovers
+          </button>
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`px-2 sm:px-4 py-2 min-h-[40px] rounded-full text-[11px] sm:text-xs font-bold transition-all font-heading text-center truncate ${
+              activeTab === 'overview'
+                ? 'bg-[#101820] text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Adherence
           </button>
         </div>
 

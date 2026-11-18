@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   Lock,
   FileText,
+  MessageSquare,
   X,
   ChevronLeft,
   ChevronRight,
@@ -30,6 +31,7 @@ export default function CaretakerView({ patient, user }) {
   const [currentRxIndex, setCurrentRxIndex] = useState(0);
   const [submittingAction, setSubmittingAction] = useState(false);
   const [actionSuccessMessage, setActionSuccessMessage] = useState('');
+  const [activeTab, setActiveTab] = useState('medicines'); // 'medicines' (default) | 'handovers'
 
   // Safe fallback default: derived doses from scheduleData
   const doses = scheduleData?.doses || scheduleData?.slots || [];
@@ -289,10 +291,10 @@ export default function CaretakerView({ patient, user }) {
                         </button>
                       </>
                     ) : (
-                      /* Double-dose Prevention Locked Badge */
-                      <div className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 py-2.5 px-4 min-h-[44px] rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold">
-                        <Lock className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Locked (Recorded)</span>
+                      /* Recorded Badge */
+                      <div className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 py-2 px-4 min-h-[44px] rounded-full bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold font-heading">
+                        <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isGiven ? 'text-emerald-600' : 'text-rose-500'}`} />
+                        <span>Recorded</span>
                       </div>
                     )}
                   </div>
@@ -315,63 +317,99 @@ export default function CaretakerView({ patient, user }) {
         </div>
       )}
 
-      {/* Daily Progress Overview Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
-        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-[#e6ecf1] shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-heading">Total Doses</span>
-          <span className="text-xl sm:text-2xl font-extrabold text-[#101820] mt-1 font-heading">{summary.total}</span>
-        </div>
-
-        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-emerald-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col bg-emerald-50/20">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 font-heading">Given</span>
-          <span className="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-1 font-heading">{summary.given}</span>
-        </div>
-
-        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-rose-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col bg-rose-50/20">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-rose-700 font-heading">Skipped</span>
-          <span className="text-xl sm:text-2xl font-extrabold text-rose-600 mt-1 font-heading">{summary.skipped || 0}</span>
-        </div>
-
-        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-amber-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col bg-amber-50/20">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 font-heading">Pending</span>
-          <span className="text-xl sm:text-2xl font-extrabold text-amber-600 mt-1 font-heading">{summary.pending}</span>
+      {/* View Switcher: Medicines (Default) vs Handover Notes */}
+      <div className="flex items-center justify-between gap-3 border-b border-[#e6ecf1] pb-3">
+        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-full text-xs">
+          <button
+            type="button"
+            onClick={() => setActiveTab('medicines')}
+            className={`px-4 py-2 min-h-[40px] rounded-full text-xs font-bold transition-all flex items-center gap-1.5 font-heading cursor-pointer ${
+              activeTab === 'medicines'
+                ? 'bg-[#101820] text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Pill className="w-3.5 h-3.5" />
+            <span>Medicines ({summary.total})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('handovers')}
+            className={`px-4 py-2 min-h-[40px] rounded-full text-xs font-bold transition-all flex items-center gap-1.5 font-heading cursor-pointer ${
+              activeTab === 'handovers'
+                ? 'bg-[#101820] text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>Handovers</span>
+          </button>
         </div>
       </div>
 
+      {/* Medicines Tab Content (Default) */}
+      {activeTab === 'medicines' && (
+        <div className="space-y-6">
+          {/* Daily Progress Overview Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-[#e6ecf1] shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-heading">Total Doses</span>
+              <span className="text-xl sm:text-2xl font-extrabold text-[#101820] mt-1 font-heading">{summary.total}</span>
+            </div>
 
-      {/* Schedule Grouped Sections */}
-      <div>
-        {renderSlotSection(
-          'Morning (05:00 – 11:59)',
-          morningDoses,
-          <Sun className="w-4 h-4 text-amber-600" />,
-          'bg-amber-100'
-        )}
+            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-emerald-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col bg-emerald-50/20">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 font-heading">Given</span>
+              <span className="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-1 font-heading">{summary.given}</span>
+            </div>
 
-        {renderSlotSection(
-          'Afternoon (12:00 – 16:59)',
-          afternoonDoses,
-          <Sunset className="w-4 h-4 text-orange-600" />,
-          'bg-orange-100'
-        )}
+            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-rose-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col bg-rose-50/20">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-rose-700 font-heading">Skipped</span>
+              <span className="text-xl sm:text-2xl font-extrabold text-rose-600 mt-1 font-heading">{summary.skipped || 0}</span>
+            </div>
 
-        {renderSlotSection(
-          'Night (17:00 – 23:59)',
-          nightDoses,
-          <Moon className="w-4 h-4 text-indigo-600" />,
-          'bg-indigo-100'
-        )}
-
-        {doses.length === 0 && (
-          <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center text-slate-500">
-            <Pill className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-            <p className="text-sm font-bold font-heading">No active medications scheduled for today.</p>
+            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-amber-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col bg-amber-50/20">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 font-heading">Pending</span>
+              <span className="text-xl sm:text-2xl font-extrabold text-amber-600 mt-1 font-heading">{summary.pending}</span>
+            </div>
           </div>
-        )}
-      </div>
 
-      {/* Handover Notes Module */}
-      <HandoverNotesPanel patientId={patient._id} userRole="caretaker" />
+          {/* Schedule Grouped Sections */}
+          <div>
+            {renderSlotSection(
+              'Morning (05:00 – 11:59)',
+              morningDoses,
+              <Sun className="w-4 h-4 text-amber-600" />,
+              'bg-amber-100'
+            )}
+
+            {renderSlotSection(
+              'Afternoon (12:00 – 16:59)',
+              afternoonDoses,
+              <Sunset className="w-4 h-4 text-orange-600" />,
+              'bg-orange-100'
+            )}
+
+            {renderSlotSection(
+              'Night (17:00 – 23:59)',
+              nightDoses,
+              <Moon className="w-4 h-4 text-indigo-600" />,
+              'bg-indigo-100'
+            )}
+
+            {doses.length === 0 && (
+              <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center text-slate-500">
+                <Pill className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm font-bold font-heading">No active medications scheduled for today.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Handovers Tab Content */}
+      {activeTab === 'handovers' && (
+        <HandoverNotesPanel patientId={patient._id} userRole="caretaker" />
+      )}
 
       {/* Skip Reason Modal */}
       <SkipReasonModal
