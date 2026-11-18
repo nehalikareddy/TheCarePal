@@ -36,6 +36,44 @@ export default function AuthView({ onLoginSuccess }) {
     }
   };
 
+  // 1-Click Demo Login Handler for Rohan Verma (Family)
+  const handleDemoFamily = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const res = await api.post('/auth/login', {
+        email: 'rohan.family@demo.com',
+        password: 'Demo@123',
+      });
+      localStorage.setItem('carepal_token', res.data.token);
+      localStorage.setItem('thecarepal_token', res.data.token);
+      onLoginSuccess(res.data.user, res.data.token);
+    } catch (err) {
+      setError('Demo login failed. Make sure backend server is running.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 1-Click Demo Login Handler for Nurse Kavita (Caretaker)
+  const handleDemoCaretaker = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const res = await api.post('/auth/login', {
+        email: 'kavita.nurse@demo.com',
+        password: 'Demo@123',
+      });
+      localStorage.setItem('carepal_token', res.data.token);
+      localStorage.setItem('thecarepal_token', res.data.token);
+      onLoginSuccess(res.data.user, res.data.token);
+    } catch (err) {
+      setError('Demo login failed. Make sure backend server is running.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
@@ -178,8 +216,60 @@ export default function AuthView({ onLoginSuccess }) {
             </button>
           </div>
 
+          {/* 1-Click Quick Demo Access (Stacked on mobile, 52px+ tap target) */}
+          <div className="mt-6 pt-5 border-t border-slate-200">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-full bg-[#3fb6ad] animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-heading">
+                1-Click Quick Demo Access
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* Demo Family Button (min-h-[52px]) */}
+              <button
+                type="button"
+                onClick={handleDemoFamily}
+                disabled={loading}
+                className="flex items-center gap-2.5 p-3 min-h-[52px] rounded-2xl border border-[#3fb6ad]/40 bg-[#3fb6ad]/10 hover:bg-[#3fb6ad]/20 transition-all text-left group active:scale-[0.98]"
+              >
+                <div className="w-8 h-8 rounded-full bg-[#3fb6ad] text-[#04302c] flex items-center justify-center shrink-0 shadow-xs">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-bold text-[#04302c] group-hover:text-black truncate font-heading">
+                    Demo: Family
+                  </div>
+                  <div className="text-[11px] text-slate-500 truncate">
+                    Rohan Verma
+                  </div>
+                </div>
+              </button>
+
+              {/* Demo Caretaker Button (min-h-[52px]) */}
+              <button
+                type="button"
+                onClick={handleDemoCaretaker}
+                disabled={loading}
+                className="flex items-center gap-2.5 p-3 min-h-[52px] rounded-2xl border border-[#101820] bg-[#101820] hover:bg-black transition-all text-left group active:scale-[0.98] shadow-xs"
+              >
+                <div className="w-8 h-8 rounded-full bg-white/15 text-[#3fb6ad] flex items-center justify-center shrink-0">
+                  <Stethoscope className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-bold text-white truncate font-heading">
+                    Demo: Caretaker
+                  </div>
+                  <div className="text-[11px] text-slate-400 truncate">
+                    Nurse Kavita
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+
           {/* Production Trust & Security Guarantee */}
-          <div className="mt-6 pt-5 border-t border-[#e6ecf1] flex items-center justify-center gap-2 text-slate-500">
+          <div className="mt-5 pt-4 border-t border-[#e6ecf1] flex items-center justify-center gap-2 text-slate-500">
             <ShieldCheck className="w-4 h-4 text-[#3fb6ad] shrink-0" />
             <p className="text-[11px] leading-relaxed text-center font-medium">
               HIPAA & NDHM Aligned • End-to-End Encrypted Care Coordination

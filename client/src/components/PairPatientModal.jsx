@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, KeyRound, UserPlus, ArrowRight, ShieldCheck } from 'lucide-react';
 import api from '../services/api';
 
@@ -15,6 +15,14 @@ export default function PairPatientModal({ isOpen, onClose, onPatientLinked, use
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Default active tab to 'join' for caretakers and 'create' for family
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(userRole === 'caretaker' ? 'join' : 'create');
+      setError('');
+    }
+  }, [isOpen, userRole]);
 
   if (!isOpen) return null;
 
@@ -61,11 +69,11 @@ export default function PairPatientModal({ isOpen, onClose, onPatientLinked, use
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#101820]/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-[#e6ecf1] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 bg-[#101820]/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-[#e6ecf1] max-h-[90vh] overflow-y-auto p-4 sm:p-6 mx-3 sm:mx-auto animate-in fade-in zoom-in-95 duration-150">
         
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-[#e6ecf1] flex items-center justify-between">
+        <div className="pb-4 border-b border-[#e6ecf1] flex items-center justify-between mb-4">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-[#3fb6ad]/15 text-[#04302c] flex items-center justify-center">
               <KeyRound className="w-4 h-4 text-[#3fb6ad]" />
@@ -76,14 +84,14 @@ export default function PairPatientModal({ isOpen, onClose, onPatientLinked, use
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab switchers if family, or direct code input */}
-        <div className="p-6">
+        <div>
           <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-full mb-5 border border-slate-200/80">
             <button
               type="button"

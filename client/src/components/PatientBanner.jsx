@@ -82,39 +82,42 @@ export default function PatientBanner({
           </div>
         </div>
 
-        {/* 1-Click Copyable 6-Digit Care Code Badge */}
-        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-center">
-          <div className="bg-white/5 border border-white/15 rounded-xl px-3 py-1.5 flex items-center gap-3">
-            <div className="flex flex-col">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-heading">
+        {/* 1-Click Copyable 6-Digit Care Code & Action Buttons */}
+        <div className="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto items-stretch sm:items-center">
+          <button
+            type="button"
+            onClick={handleCopyCode}
+            className="flex items-center justify-between px-3 py-2 bg-white/5 border border-white/15 rounded-full hover:bg-white/10 transition-all min-h-[44px] text-left group active:scale-[0.98]"
+            title="Click to copy Care Code for nurse or family sharing"
+          >
+            <div className="flex flex-col min-w-0 pr-1">
+              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider font-heading leading-none">
                 Care Code
               </span>
-              <span className="text-base font-mono font-extrabold tracking-widest text-[#3fb6ad]">
+              <span className="text-sm sm:text-base font-mono font-extrabold tracking-widest text-[#3fb6ad] leading-tight">
                 {patient.careCode}
               </span>
             </div>
 
-            <button
-              onClick={handleCopyCode}
-              className={`p-1.5 rounded-lg transition-all ${
+            <div
+              className={`p-1.5 rounded-full shrink-0 transition-all ${
                 copied
                   ? 'bg-emerald-600 text-white'
-                  : 'bg-white/10 hover:bg-white/20 text-white'
+                  : 'bg-white/10 text-white group-hover:bg-white/20'
               }`}
-              title="Click to copy Care Code for nurse or family sharing"
             >
-              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-            </button>
-          </div>
+              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            </div>
+          </button>
 
           {/* Add / Enter Code Pill Button */}
           <button
             onClick={onOpenPairModal}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-full bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] transition-all shadow-[0_4px_14px_rgba(63,182,173,0.25)] font-heading"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-full bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] transition-all shadow-[0_4px_14px_rgba(63,182,173,0.25)] font-heading min-h-[44px] active:scale-[0.98]"
             title="Link another patient using a 6-digit Care Code"
           >
-            <PlusCircle className="w-3.5 h-3.5" />
-            <span>{userRole === 'caretaker' ? 'Enter Code' : 'Add Patient'}</span>
+            <PlusCircle className="w-4 h-4 shrink-0" />
+            <span className="truncate">{userRole === 'caretaker' ? 'Enter Code' : 'Add Patient'}</span>
           </button>
         </div>
       </div>

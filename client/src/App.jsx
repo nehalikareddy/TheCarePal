@@ -239,42 +239,37 @@ export default function App() {
               userRole={user.role}
             />
 
-            {/* Seamless View Navigation */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-              <div>
-                <h2 className="text-base sm:text-lg font-bold text-[#101820] font-heading">
-                  {activeRoleView === 'caretaker' ? "Today's Medication Checklist" : "Prescriptions & Adherence"}
-                </h2>
-                <p className="text-xs text-slate-500">
-                  {activeRoleView === 'caretaker'
-                    ? "Real-time dosage administration & caregiver shift logs"
-                    : "Comprehensive medication regimen, weekly adherence & alerts"}
-                </p>
+            {/* Thumb-Friendly Portal Preview Switcher */}
+            <div className="mb-5 bg-white border border-[#e6ecf1] rounded-2xl p-3 sm:px-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+              <div className="flex items-center gap-2 text-xs text-slate-700 font-medium">
+                <span className="w-2 h-2 rounded-full bg-[#3fb6ad] animate-pulse shrink-0" />
+                <span className="font-bold text-[#101820] font-heading">Portal Preview:</span>
+                <span className="text-slate-500 text-[11px] sm:text-xs">Switch view to preview experience:</span>
               </div>
 
-              <div className="flex items-center p-1 bg-slate-100 rounded-full text-xs font-bold font-heading border border-[#e6ecf1] self-start sm:self-auto shadow-2xs">
+              <div className="grid grid-cols-2 sm:flex w-full sm:w-auto gap-1.5 p-1 bg-slate-100 rounded-full text-xs font-bold font-heading border border-[#e6ecf1] shadow-2xs">
                 <button
                   onClick={() => setActiveRoleView('caretaker')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all ${
+                  className={`flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 min-h-[44px] sm:min-h-0 rounded-full transition-all active:scale-[0.98] ${
                     activeRoleView === 'caretaker'
                       ? 'bg-[#101820] text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <Stethoscope className="w-3.5 h-3.5 text-[#3fb6ad]" />
-                  <span>Checklist</span>
+                  <Stethoscope className="w-4 h-4 text-[#3fb6ad]" />
+                  <span>Caretaker View</span>
                 </button>
 
                 <button
                   onClick={() => setActiveRoleView('family')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all ${
+                  className={`flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 min-h-[44px] sm:min-h-0 rounded-full transition-all active:scale-[0.98] ${
                     activeRoleView === 'family'
                       ? 'bg-[#101820] text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <Users className="w-3.5 h-3.5 text-[#3fb6ad]" />
-                  <span>Overview & Meds</span>
+                  <Users className="w-4 h-4 text-[#3fb6ad]" />
+                  <span>Family View</span>
                 </button>
               </div>
             </div>

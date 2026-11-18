@@ -47,10 +47,10 @@ export default function HandoverNotesPanel({ patientId, userRole }) {
   };
 
   return (
-    <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-[#e6ecf1] mt-6">
+    <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-[#e6ecf1] mt-6">
       <div className="flex items-center justify-between pb-4 border-b border-[#e6ecf1] mb-5">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-full bg-[#3fb6ad]/15 text-[#04302c] flex items-center justify-center font-bold">
+          <div className="w-9 h-9 rounded-full bg-[#3fb6ad]/15 text-[#04302c] flex items-center justify-center font-bold shrink-0">
             <MessageSquare className="w-4 h-4 text-[#3fb6ad]" />
           </div>
           <div>
@@ -61,35 +61,35 @@ export default function HandoverNotesPanel({ patientId, userRole }) {
       </div>
 
       {/* New Note Form */}
-      <form onSubmit={handleSubmitNote} className="mb-6 bg-slate-50 border border-[#e6ecf1] rounded-3xl p-4 sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+      <form onSubmit={handleSubmitNote} className="mb-6 bg-slate-50 border border-[#e6ecf1] rounded-3xl p-3.5 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3">
           <label className="text-xs font-bold text-[#101820] font-heading">Log Shift Observation</label>
           
           {/* Shift Selector */}
-          <div className="flex items-center gap-1.5 p-1 bg-white border border-[#e6ecf1] rounded-full text-xs shadow-2xs">
+          <div className="grid grid-cols-2 sm:flex items-center gap-1.5 p-1 bg-white border border-[#e6ecf1] rounded-full text-xs shadow-2xs w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setShift('Day to Night')}
-              className={`flex items-center gap-1 px-3 py-1 rounded-full font-semibold transition-all font-heading ${
+              className={`flex items-center justify-center gap-1 px-3 py-2 sm:py-1 min-h-[38px] sm:min-h-0 rounded-full font-semibold transition-all font-heading ${
                 shift === 'Day to Night'
                   ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Sun className="w-3.5 h-3.5 text-amber-600" />
+              <Sun className="w-3.5 h-3.5 text-amber-600 shrink-0" />
               <span>Day to Night</span>
             </button>
 
             <button
               type="button"
               onClick={() => setShift('Night to Day')}
-              className={`flex items-center gap-1 px-3 py-1 rounded-full font-semibold transition-all font-heading ${
+              className={`flex items-center justify-center gap-1 px-3 py-2 sm:py-1 min-h-[38px] sm:min-h-0 rounded-full font-semibold transition-all font-heading ${
                 shift === 'Night to Day'
                   ? 'bg-indigo-100 text-indigo-900 border border-indigo-300 shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Moon className="w-3.5 h-3.5 text-indigo-600" />
+              <Moon className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
               <span>Night to Day</span>
             </button>
           </div>
@@ -100,7 +100,7 @@ export default function HandoverNotesPanel({ patientId, userRole }) {
           value={noteText}
           onChange={(e) => setNoteText(e.target.value)}
           placeholder="Record patient mood, meals, vitals, sleep, or medication observations for the incoming shift..."
-          className="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-slate-300 bg-white focus:ring-2 focus:ring-[#3fb6ad] focus:border-[#3fb6ad] focus:outline-none"
+          className="w-full text-base sm:text-sm p-3.5 rounded-2xl border border-slate-300 bg-white focus:ring-2 focus:ring-[#3fb6ad] focus:border-[#3fb6ad] focus:outline-none"
         />
 
         {error && <p className="text-xs text-red-600 font-medium mt-1">{error}</p>}
@@ -109,9 +109,9 @@ export default function HandoverNotesPanel({ patientId, userRole }) {
           <button
             type="submit"
             disabled={submitting || !noteText.trim()}
-            className="flex items-center gap-1.5 py-2.5 px-5 rounded-full text-xs font-bold bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] font-heading shadow-[0_4px_14px_rgba(63,182,173,0.3)] hover:shadow-[0_8px_20px_rgba(63,182,173,0.45)] disabled:opacity-50 transition-all active:scale-[0.98]"
+            className="w-full sm:w-auto flex items-center justify-center gap-1.5 py-2.5 px-6 min-h-[44px] rounded-full text-xs font-bold bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] font-heading shadow-[0_4px_14px_rgba(63,182,173,0.3)] hover:shadow-[0_8px_20px_rgba(63,182,173,0.45)] disabled:opacity-50 transition-all active:scale-[0.98]"
           >
-            <Send className="w-3.5 h-3.5" />
+            <Send className="w-3.5 h-3.5 shrink-0" />
             <span>{submitting ? 'Posting...' : 'Post Handover Note'}</span>
           </button>
         </div>

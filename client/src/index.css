@@ -3,8 +3,17 @@
 @tailwind utilities;
 
 @layer base {
+  html,
+  body {
+    @apply overflow-x-hidden;
+  }
   body {
     @apply bg-[#F8FAFC] text-slate-800 font-sans;
+  }
+  input,
+  select,
+  textarea {
+    @apply text-base sm:text-sm;
   }
 }
 

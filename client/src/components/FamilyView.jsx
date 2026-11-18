@@ -132,54 +132,53 @@ export default function FamilyView({ patient, user }) {
 
   return (
     <div className="space-y-6">
-      {/* Navigation Sub-Tabs (TheCarePal Pill Style) */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6ecf1] pb-3">
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-full">
+      {/* Navigation Sub-Tabs & Add Medicine Button */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#e6ecf1] pb-3">
+        {/* Full-width equal 3-column tab bar on mobile */}
+        <div className="grid grid-cols-3 sm:flex w-full sm:w-auto gap-1 p-1 bg-slate-100 rounded-full text-xs sm:text-sm">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`px-4 py-2 rounded-full text-xs font-bold transition-all font-heading ${
+            className={`px-2 sm:px-4 py-2 min-h-[40px] rounded-full text-[11px] sm:text-xs font-bold transition-all font-heading text-center truncate ${
               activeTab === 'overview'
                 ? 'bg-[#101820] text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Adherence & Analytics
+            Adherence
           </button>
           <button
             onClick={() => setActiveTab('medicines')}
-            className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 font-heading ${
+            className={`px-2 sm:px-4 py-2 min-h-[40px] rounded-full text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 font-heading text-center truncate ${
               activeTab === 'medicines'
                 ? 'bg-[#101820] text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span>Medicines ({medicines.length})</span>
+            <span>Meds ({medicines.length})</span>
             {lowStockAlerts.length > 0 && (
-              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
             )}
           </button>
           <button
             onClick={() => setActiveTab('handovers')}
-            className={`px-4 py-2 rounded-full text-xs font-bold transition-all font-heading ${
+            className={`px-2 sm:px-4 py-2 min-h-[40px] rounded-full text-[11px] sm:text-xs font-bold transition-all font-heading text-center truncate ${
               activeTab === 'handovers'
                 ? 'bg-[#101820] text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Shift Handovers
+            Handovers
           </button>
         </div>
 
-        {/* Quick Action: Add Medicine in Signature TheCarePal Teal Button */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsAddFormOpen(!isAddFormOpen)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] transition-all shadow-[0_4px_14px_rgba(63,182,173,0.3)] hover:shadow-[0_8px_20px_rgba(63,182,173,0.45)] font-heading active:scale-[0.98]"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add Medicine</span>
-          </button>
-        </div>
+        {/* Quick Action: Add Medicine full-width primary button on mobile */}
+        <button
+          onClick={() => setIsAddFormOpen(!isAddFormOpen)}
+          className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-bold bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] transition-all shadow-[0_4px_14px_rgba(63,182,173,0.3)] hover:shadow-[0_8px_20px_rgba(63,182,173,0.45)] font-heading active:scale-[0.98] w-full sm:w-auto min-h-[46px]"
+        >
+          <Plus className="w-4 h-4 shrink-0" />
+          <span>+ Add Medicine</span>
+        </button>
       </div>
 
       {/* Low Stock Warning Banner */}
@@ -210,7 +209,7 @@ export default function FamilyView({ patient, user }) {
 
       {/* Add Medicine Inline Form */}
       {isAddFormOpen && (
-        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#3fb6ad]/40 shadow-[0_2px_8px_rgba(0,0,0,0.06)] animate-in fade-in duration-200">
+        <div className="bg-white p-4 sm:p-6 rounded-3xl border border-[#3fb6ad]/40 shadow-[0_2px_8px_rgba(0,0,0,0.06)] animate-in fade-in duration-200 max-h-[90vh] overflow-y-auto mx-auto">
           <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
             <h3 className="text-sm font-bold text-[#101820] font-heading">Add New Prescribed Medication</h3>
             <button
@@ -347,11 +346,11 @@ export default function FamilyView({ patient, user }) {
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* Adherence Hero Card */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-[#e6ecf1]">
+          <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-[#e6ecf1]">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
               {/* Adherence Progress Ring & Score */}
-              <div className="flex items-center gap-5">
-                <div className="relative flex items-center justify-center">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-5">
+                <div className="relative flex items-center justify-center shrink-0">
                   <svg className="w-24 h-24 sm:w-28 sm:h-28 transform -rotate-90">
                     <circle
                       cx="56"
@@ -383,16 +382,16 @@ export default function FamilyView({ patient, user }) {
                 </div>
 
                 <div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center justify-center sm:justify-start gap-1.5">
                     <TrendingUp className="w-4 h-4 text-[#3fb6ad]" />
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-400 font-heading">
                       7-Day Adherence Score
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-[#101820] mt-0.5 font-heading">
+                  <h3 className="text-base sm:text-lg font-bold text-[#101820] mt-0.5 font-heading">
                     {weeklyRate >= 90 ? 'Excellent Medication Routine' : weeklyRate >= 75 ? 'Good Routine Adherence' : 'Needs Immediate Attention'}
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1 max-w-sm">
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto sm:mx-0">
                     {weeklyRate >= 90
                       ? 'The patient has successfully taken prescribed medications on time with minimal skips.'
                       : 'Review the skipped doses log below to address patient refusal or scheduling gaps.'}
@@ -401,7 +400,7 @@ export default function FamilyView({ patient, user }) {
               </div>
 
               {/* Weekly Quick Metrics */}
-              <div className="grid grid-cols-3 sm:grid-cols-1 gap-2.5 border-t sm:border-t-0 sm:border-l border-slate-100 pt-4 sm:pt-0 sm:pl-6">
+              <div className="grid grid-cols-3 sm:grid-cols-1 gap-2.5 border-t sm:border-t-0 sm:border-l border-slate-100 pt-4 sm:pt-0 sm:pl-6 text-center sm:text-left">
                 <div>
                   <span className="text-[10px] font-bold text-slate-400 uppercase font-heading">Given Doses</span>
                   <div className="text-base font-extrabold text-[#3fb6ad] font-heading">
@@ -429,7 +428,7 @@ export default function FamilyView({ patient, user }) {
                 Daily Completion Trends (Past 7 Days)
               </h4>
 
-              <div className="grid grid-cols-7 gap-2 sm:gap-3 text-center">
+              <div className="grid grid-cols-7 gap-1 sm:gap-3 text-center overflow-x-hidden">
                 {dailyTrends.map((day) => {
                   const rate = day.adherenceRate ?? day.percentage ?? 0;
                   const heightPct = Math.max(15, rate);
@@ -437,14 +436,14 @@ export default function FamilyView({ patient, user }) {
                   const isModerate = rate >= 70 && rate < 85;
 
                   return (
-                    <div key={day.date} className="flex flex-col items-center">
-                      <span className="text-[10px] font-bold text-slate-600 mb-1 font-heading">{rate}%</span>
+                    <div key={day.date} className="flex flex-col items-center min-w-0">
+                      <span className="text-[9px] sm:text-[10px] font-bold text-slate-600 mb-1 font-heading">{rate}%</span>
 
                       {/* Bar Container */}
-                      <div className="w-full bg-slate-100 h-24 rounded-xl p-1 flex flex-col justify-end">
+                      <div className="w-full bg-slate-100 h-20 sm:h-24 rounded-lg sm:rounded-xl p-0.5 sm:p-1 flex flex-col justify-end">
                         <div
                           style={{ height: `${heightPct}%` }}
-                          className={`w-full rounded-lg transition-all duration-500 ${
+                          className={`w-full rounded-md sm:rounded-lg transition-all duration-500 ${
                             isHealthy
                               ? 'bg-[#3fb6ad]'
                               : isModerate
@@ -455,8 +454,8 @@ export default function FamilyView({ patient, user }) {
                         />
                       </div>
 
-                      <span className="text-xs font-bold text-[#101820] mt-2 font-heading">{day.dayName || day.label?.split(',')[0]}</span>
-                      <span className="text-[10px] text-slate-400 font-medium">{day.displayDate || ''}</span>
+                      <span className="text-[10px] sm:text-xs font-bold text-[#101820] mt-1.5 sm:mt-2 font-heading truncate w-full">{day.dayName || day.label?.split(',')[0]}</span>
+                      <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium truncate w-full">{day.displayDate || ''}</span>
                     </div>
                   );
                 })}

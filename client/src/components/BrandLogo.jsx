@@ -24,7 +24,7 @@ export default function BrandLogo({ size = 'default', showSubtitle = true, class
         </div>
 
         {showSubtitle && !isSmall && (
-          <span className="text-[11px] text-slate-500 font-semibold tracking-tight mt-0.5 pl-0.5">
+          <span className="hidden sm:block text-[11px] text-slate-500 font-semibold tracking-tight mt-0.5 pl-0.5">
             Trusted Care at Home
           </span>
         )}
