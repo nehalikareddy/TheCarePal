@@ -336,7 +336,7 @@ export default function App() {
       });
       setLiveAlert({
         type: 'info',
-        message: patientOrPending.message || 'Request sent! Waiting for family approval.',
+        message: patientOrPending.message || 'Request sent to family! You will get access as soon as they approve.',
       });
       return;
     }

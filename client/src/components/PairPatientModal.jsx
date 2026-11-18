@@ -36,11 +36,11 @@ export default function PairPatientModal({ isOpen, onClose, onPatientLinked, use
     setLoading(true);
     try {
       const res = await api.post('/patients/join', { careCode: careCode.trim() });
-      if (res.data.pending) {
+      if (res.data?.pending) {
         onPatientLinked({
           ...res.data.patient,
           pending: true,
-          message: res.data.message
+          message: 'Request sent to family! You will get access as soon as they approve.'
         });
       } else {
         onPatientLinked(res.data.patient);

@@ -6,6 +6,9 @@ const patientSchema = new mongoose.Schema({
   condition: { type: String, default: 'Home Care', trim: true },
   careCode: { type: String, required: true, unique: true, uppercase: true, trim: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  caretakers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  family: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   pendingMembers: [{
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     name: String,

@@ -18,24 +18,40 @@ const generateUniqueCareCode = async () => {
   return code;
 };
 
-// Helper: Verify if current caller is a family administrator for patient
+// Helper: Verify if current caller is an authorized family member for this patient
 const verifyFamilyMemberForPatient = async (req, patientId) => {
-  const userId = req.user?._id || req.user?.id;
-  if (!userId) return null;
-  const currentUser = await User.findById(userId);
-  if (!currentUser || currentUser.role !== 'family') return null;
+  const callerId = String(
+    req.user?.id ||
+    req.user?._id ||
+    req.user?.userId ||
+    req.user?.user?.id ||
+    req.user?.user?._id ||
+    ''
+  );
+  if (!callerId) return null;
 
-  const isLinked = (currentUser.patients || []).some(
-    (p) => String(p._id || p) === String(patientId)
+  const caller = await User.findById(callerId);
+  const patient = await Patient.findById(patientId);
+
+  if (!caller || !patient) return null;
+  if (caller.role !== 'family') return null;
+
+  // Verify caller is linked to patient (check caller.patients or patient's family/member references)
+  const isLinkedToUser = (caller.patients || []).some(
+    (p) => String(p._id || p) === String(patient._id)
   );
 
-  if (isLinked) return currentUser;
+  const isLinkedOnPatient =
+    String(patient.createdBy) === callerId ||
+    (patient.family || []).some((f) => String(f._id || f) === callerId) ||
+    (patient.members || []).some((m) => String(m._id || m) === callerId) ||
+    (patient.caretakers || []).some((c) => String(c._id || c) === callerId);
 
-  // Also check if patient was createdBy currentUser
-  const patient = await Patient.findById(patientId);
-  if (patient && String(patient.createdBy) === String(currentUser._id)) {
-    await User.findByIdAndUpdate(currentUser._id, { $addToSet: { patients: patient._id } });
-    return currentUser;
+  if (isLinkedToUser || isLinkedOnPatient) {
+    if (!isLinkedToUser) {
+      await User.findByIdAndUpdate(callerId, { $addToSet: { patients: patient._id } });
+    }
+    return { caller, patient };
   }
 
   return null;
@@ -44,8 +60,9 @@ const verifyFamilyMemberForPatient = async (req, patientId) => {
 // GET /api/patients - Get all patients accessible by current user
 router.get('/', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).populate('patients');
-    res.json({ patients: user.patients || [] });
+    const callerId = String(req.user?.id || req.user?._id || req.user?.userId || req.user?.user?.id || '');
+    const user = await User.findById(callerId).populate('patients');
+    res.json({ patients: user?.patients || [] });
   } catch (err) {
     res.status(500).json({ message: 'Error fetching patients', error: err.message });
   }
@@ -54,13 +71,14 @@ router.get('/', auth, async (req, res) => {
 // GET /api/patients/my-pending - Get all pending requests for current user (caretaker view across page refreshes)
 router.get('/my-pending', auth, async (req, res) => {
   try {
+    const callerId = String(req.user?.id || req.user?._id || req.user?.userId || req.user?.user?.id || '');
     const pendingPatients = await Patient.find(
-      { 'pendingMembers.userId': req.user._id },
+      { 'pendingMembers.userId': callerId },
       '_id name age condition careCode pendingMembers'
     );
     const formatted = pendingPatients.map((p) => {
       const myRequest = (p.pendingMembers || []).find(
-        (pm) => String(pm.userId) === String(req.user._id)
+        (pm) => String(pm.userId) === callerId
       );
       return {
         _id: p._id,
@@ -94,6 +112,7 @@ router.get('/:id', auth, async (req, res) => {
 // POST /api/patients - Create a new patient (Family or Caretaker)
 router.post('/', auth, async (req, res) => {
   try {
+    const callerId = String(req.user?.id || req.user?._id || req.user?.userId || req.user?.user?.id || '');
     const { name, age, condition } = req.body;
     if (!name || !age) {
       return res.status(400).json({ message: 'Patient name and age are required' });
@@ -105,12 +124,13 @@ router.post('/', auth, async (req, res) => {
       age: Number(age),
       condition: condition || 'Home Care',
       careCode,
-      createdBy: req.user._id,
+      createdBy: callerId,
+      family: [callerId],
       pendingMembers: []
     });
 
     // Link to current user
-    await User.findByIdAndUpdate(req.user._id, {
+    await User.findByIdAndUpdate(callerId, {
       $addToSet: { patients: patient._id }
     });
 
@@ -137,7 +157,8 @@ router.post('/join', auth, async (req, res) => {
       return res.status(404).json({ message: 'No patient found matching Care Code: ' + careCode });
     }
 
-    const currentUser = await User.findById(req.user._id);
+    const callerId = String(req.user?.id || req.user?._id || req.user?.userId || req.user?.user?.id || '');
+    const currentUser = await User.findById(callerId);
     if (!currentUser) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -213,16 +234,24 @@ router.post('/join', auth, async (req, res) => {
 router.get('/:id/members', auth, async (req, res) => {
   try {
     const patientId = req.params.id;
+    const callerId = String(req.user?.id || req.user?._id || req.user?.userId || req.user?.user?.id || '');
 
-    // Verify caller has access to this patient
-    const caller = await User.findOne({ _id: req.user._id, patients: patientId });
-    if (!caller) {
-      return res.status(403).json({ message: 'Access denied: You are not a member of this patient care team' });
+    const caller = await User.findById(callerId);
+    const patient = await Patient.findById(patientId);
+
+    if (!caller || !patient) {
+      return res.status(404).json({ message: 'Patient or user not found' });
     }
 
-    const patient = await Patient.findById(patientId);
-    if (!patient) {
-      return res.status(404).json({ message: 'Patient not found' });
+    const isLinked =
+      (caller.patients || []).some((p) => String(p._id || p) === String(patient._id)) ||
+      String(patient.createdBy) === callerId ||
+      (patient.family || []).some((f) => String(f._id || f) === callerId) ||
+      (patient.members || []).some((m) => String(m._id || m) === callerId) ||
+      (patient.caretakers || []).some((c) => String(c._id || c) === callerId);
+
+    if (!isLinked) {
+      return res.status(403).json({ message: 'Access denied: You are not a member of this patient care team' });
     }
 
     const members = await User.find(
@@ -244,25 +273,24 @@ router.get('/:id/members', auth, async (req, res) => {
 router.post('/:id/requests/:userId/approve', auth, async (req, res) => {
   try {
     const { id: patientId, userId } = req.params;
-    const familyUser = await verifyFamilyMemberForPatient(req, patientId);
-    if (!familyUser) {
+    const authResult = await verifyFamilyMemberForPatient(req, patientId);
+    if (!authResult) {
       return res.status(403).json({ message: 'Only family administrators can approve care team requests' });
     }
-
-    const patient = await Patient.findById(patientId);
-    if (!patient) {
-      return res.status(404).json({ message: 'Patient not found' });
-    }
+    const { caller, patient } = authResult;
 
     const targetUser = await User.findById(userId);
     if (!targetUser) {
       return res.status(404).json({ message: 'Target user not found' });
     }
 
-    // Remove from pendingMembers
+    // Remove from pendingMembers, add to caretakers if array exists
     patient.pendingMembers = (patient.pendingMembers || []).filter(
       (pm) => String(pm.userId) !== String(userId)
     );
+    if (patient.caretakers && !patient.caretakers.includes(userId)) {
+      patient.caretakers.push(userId);
+    }
     await patient.save();
 
     // Add patient to target user's patients list
@@ -277,7 +305,7 @@ router.post('/:id/requests/:userId/approve', auth, async (req, res) => {
         patient,
         patientId: patient._id,
         patientName: patient.name,
-        approvedBy: { _id: familyUser._id, name: familyUser.name }
+        approvedBy: { _id: caller._id, name: caller.name }
       });
 
       // Emit careTeamUpdated to patient room
@@ -299,6 +327,7 @@ router.post('/:id/requests/:userId/approve', auth, async (req, res) => {
     ).sort({ role: 1, name: 1 });
 
     res.json({
+      success: true,
       message: `Approved ${targetUser.name} for ${patient.name}'s care team`,
       members,
       pendingMembers: patient.pendingMembers || []
@@ -313,17 +342,12 @@ router.post('/:id/requests/:userId/approve', auth, async (req, res) => {
 router.post('/:id/requests/:userId/reject', auth, async (req, res) => {
   try {
     const { id: patientId, userId } = req.params;
-    const familyUser = await verifyFamilyMemberForPatient(req, patientId);
-    if (!familyUser) {
+    const authResult = await verifyFamilyMemberForPatient(req, patientId);
+    if (!authResult) {
       return res.status(403).json({ message: 'Only family administrators can reject care team requests' });
     }
+    const { patient } = authResult;
 
-    const patient = await Patient.findById(patientId);
-    if (!patient) {
-      return res.status(404).json({ message: 'Patient not found' });
-    }
-
-    // Remove from pendingMembers
     patient.pendingMembers = (patient.pendingMembers || []).filter(
       (pm) => String(pm.userId) !== String(userId)
     );
@@ -343,6 +367,7 @@ router.post('/:id/requests/:userId/reject', auth, async (req, res) => {
     ).sort({ role: 1, name: 1 });
 
     res.json({
+      success: true,
       message: 'Request rejected',
       members,
       pendingMembers: patient.pendingMembers || []
@@ -358,40 +383,46 @@ router.delete('/:id/members/:userId', auth, async (req, res) => {
   try {
     const { id: patientId, userId } = req.params;
 
-    const familyUser = await verifyFamilyMemberForPatient(req, patientId);
-    if (!familyUser) {
+    const authResult = await verifyFamilyMemberForPatient(req, patientId);
+    if (!authResult) {
       return res.status(403).json({ message: 'Only family administrators can manage and revoke care team access' });
     }
+    const { caller, patient } = authResult;
 
-    if (String(familyUser._id) === String(userId)) {
+    if (String(caller._id) === String(userId)) {
       return res.status(400).json({ message: 'Cannot revoke your own access as family administrator' });
     }
 
     // Remove patient from target user's patients list
-    const updatedUser = await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
       userId,
-      { $pull: { patients: patientId } },
-      { new: true }
+      { $pull: { patients: patient._id } }
     );
 
-    if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    // Remove userId from all arrays on Patient (caretakers, members, family, pendingMembers)
+    await Patient.findByIdAndUpdate(patient._id, {
+      $pull: {
+        caretakers: userId,
+        members: userId,
+        family: userId,
+        pendingMembers: { userId: userId }
+      }
+    });
 
     // Real-time socket notification for immediate revocation in UI
     const io = req.app.get('io');
     if (io) {
-      io.to(`patient_${patientId}`).emit('accessRevoked', {
-        patientId,
+      io.to(`patient_${patient._id}`).emit('accessRevoked', {
+        patientId: patient._id,
         revokedUserId: userId
       });
       io.to(`user_${userId}`).emit('accessRevoked', {
-        patientId,
+        patientId: patient._id,
         revokedUserId: userId
       });
     }
 
-    res.json({ message: 'Caregiver access successfully revoked', userId });
+    res.json({ success: true, message: 'Caregiver access successfully revoked', userId });
   } catch (err) {
     console.error('Revoke access error:', err);
     res.status(500).json({ message: 'Failed to revoke care team access', error: err.message });
@@ -403,21 +434,15 @@ router.post('/:id/rotate-code', auth, async (req, res) => {
   try {
     const patientId = req.params.id;
 
-    const familyUser = await verifyFamilyMemberForPatient(req, patientId);
-    if (!familyUser) {
+    const authResult = await verifyFamilyMemberForPatient(req, patientId);
+    if (!authResult) {
       return res.status(403).json({ message: 'Only family administrators can rotate the patient Care Code' });
     }
+    const { patient } = authResult;
 
     const newCode = await generateUniqueCareCode();
-    const patient = await Patient.findByIdAndUpdate(
-      patientId,
-      { careCode: newCode },
-      { new: true }
-    );
-
-    if (!patient) {
-      return res.status(404).json({ message: 'Patient not found' });
-    }
+    patient.careCode = newCode;
+    await patient.save();
 
     // Emit live update to patient room so UI updates instantaneously
     const io = req.app.get('io');
@@ -426,6 +451,7 @@ router.post('/:id/rotate-code', auth, async (req, res) => {
     }
 
     res.json({
+      success: true,
       message: 'Care Code rotated successfully',
       patient
     });
