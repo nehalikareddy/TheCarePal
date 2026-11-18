@@ -11,6 +11,7 @@ const medicineSchema = new mongoose.Schema({
   endDate: { type: String, required: true },
   currentStock: { type: Number, required: true, min: 0 },
   lowStockThresholdDays: { type: Number, default: 3 },
+  prescriptionUrl: { type: String, default: '' },
   prescriptionImageUrl: { type: String, default: '' }
 }, { timestamps: true });
 

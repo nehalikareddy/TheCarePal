@@ -49,6 +49,7 @@ router.get('/today/:patientId', authMiddleware, async (req, res) => {
           strength: med.strength,
           dose: med.dose,
           food: med.food,
+          prescriptionUrl: med.prescriptionUrl || med.prescriptionImageUrl || '',
           scheduledDate: today,
           scheduledTime: time,
           slot: getTimeBucket(time),

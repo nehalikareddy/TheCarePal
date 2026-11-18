@@ -91,6 +91,21 @@ router.post('/join', auth, async (req, res) => {
       $addToSet: { patients: patient._id }
     });
 
+    // Real-time socket event notifying family that a caregiver has joined
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`patient_${patient._id}`).emit('caregiverJoined', {
+        patientId: patient._id,
+        patientName: patient.name,
+        user: {
+          _id: req.user._id,
+          name: req.user.name,
+          email: req.user.email,
+          role: req.user.role
+        }
+      });
+    }
+
     res.json({
       message: `Successfully linked with patient ${patient.name}`,
       patient
@@ -98,6 +113,117 @@ router.post('/join', auth, async (req, res) => {
   } catch (err) {
     console.error('Join patient error:', err);
     res.status(500).json({ message: 'Failed to join patient', error: err.message });
+  }
+});
+
+// GET /api/patients/:id/members - Get all linked care team members (family and caretakers)
+router.get('/:id/members', auth, async (req, res) => {
+  try {
+    const patientId = req.params.id;
+
+    // Verify caller has access to this patient
+    const caller = await User.findOne({ _id: req.user._id, patients: patientId });
+    if (!caller) {
+      return res.status(403).json({ message: 'Access denied: You are not a member of this patient care team' });
+    }
+
+    const members = await User.find(
+      { patients: patientId },
+      '_id name email role createdAt'
+    ).sort({ role: 1, name: 1 });
+
+    res.json({ members });
+  } catch (err) {
+    console.error('Fetch members error:', err);
+    res.status(500).json({ message: 'Failed to fetch care team members', error: err.message });
+  }
+});
+
+// DELETE /api/patients/:id/members/:userId - Revoke caretaker access (family only)
+router.delete('/:id/members/:userId', auth, async (req, res) => {
+  try {
+    const { id: patientId, userId } = req.params;
+
+    if (req.user.role !== 'family') {
+      return res.status(403).json({ message: 'Only family administrators can manage and revoke care team access' });
+    }
+
+    if (String(req.user._id) === String(userId)) {
+      return res.status(400).json({ message: 'Cannot revoke your own access as family administrator' });
+    }
+
+    // Verify patient belongs to caller
+    const caller = await User.findOne({ _id: req.user._id, patients: patientId });
+    if (!caller) {
+      return res.status(403).json({ message: 'Access denied to this patient profile' });
+    }
+
+    // Remove patient from target user's patients list
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $pull: { patients: patientId } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Real-time socket notification for immediate revocation in UI
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`patient_${patientId}`).emit('accessRevoked', {
+        patientId,
+        revokedUserId: userId
+      });
+    }
+
+    res.json({ message: 'Caregiver access successfully revoked', userId });
+  } catch (err) {
+    console.error('Revoke access error:', err);
+    res.status(500).json({ message: 'Failed to revoke care team access', error: err.message });
+  }
+});
+
+// POST /api/patients/:id/rotate-code - Generate and rotate 6-digit Care Code (family only)
+router.post('/:id/rotate-code', auth, async (req, res) => {
+  try {
+    const patientId = req.params.id;
+
+    if (req.user.role !== 'family') {
+      return res.status(403).json({ message: 'Only family administrators can rotate the patient Care Code' });
+    }
+
+    // Verify caller is linked to patient
+    const caller = await User.findOne({ _id: req.user._id, patients: patientId });
+    if (!caller) {
+      return res.status(403).json({ message: 'Access denied to this patient profile' });
+    }
+
+    const newCode = await generateUniqueCareCode();
+    const patient = await Patient.findByIdAndUpdate(
+      patientId,
+      { careCode: newCode },
+      { new: true }
+    );
+
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+
+    // Emit live update to patient room so UI updates instantaneously
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`patient_${patient._id}`).emit('patientUpdated', patient);
+    }
+
+    res.json({
+      message: 'Care Code rotated successfully',
+      patient
+    });
+  } catch (err) {
+    console.error('Rotate care code error:', err);
+    res.status(500).json({ message: 'Failed to rotate Care Code', error: err.message });
   }
 });
 

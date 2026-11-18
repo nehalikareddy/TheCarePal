@@ -9,6 +9,8 @@ import {
   Pill,
   AlertTriangle,
   Lock,
+  FileText,
+  X,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import api from '../services/api';
@@ -20,8 +22,9 @@ export default function CaretakerView({ patient, user }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Skip modal state
+  // Skip modal & Rx Lightbox state
   const [selectedDoseForSkip, setSelectedDoseForSkip] = useState(null);
+  const [viewingRxDose, setViewingRxDose] = useState(null);
   const [submittingAction, setSubmittingAction] = useState(false);
   const [actionSuccessMessage, setActionSuccessMessage] = useState('');
 
@@ -191,6 +194,19 @@ export default function CaretakerView({ patient, user }) {
                         >
                           {dose.food === 'before' ? 'Before Food' : dose.food === 'after' ? 'After Food' : 'With / without food'}
                         </span>
+
+                        {/* Prescription Verification View Rx Button */}
+                        {dose.prescriptionUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setViewingRxDose(dose)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#3fb6ad]/15 text-[#04302c] hover:bg-[#3fb6ad]/25 transition-all min-h-[38px] border border-[#3fb6ad]/30 font-heading"
+                            title="Verify doctor prescription"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-[#3fb6ad]" />
+                            <span>View Rx</span>
+                          </button>
+                        )}
                       </div>
 
                       <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1.5">
@@ -342,6 +358,64 @@ export default function CaretakerView({ patient, user }) {
         onConfirm={handleConfirmSkip}
         loading={submittingAction}
       />
+
+      {/* Nurse Verification Lightbox Modal */}
+      {viewingRxDose && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#3fb6ad] font-heading">
+                  Doctor's Order Verification
+                </span>
+                <h3 className="text-base font-bold text-[#101820] font-heading">
+                  {viewingRxDose.name} ({viewingRxDose.strength})
+                </h3>
+              </div>
+              <button
+                onClick={() => setViewingRxDose(null)}
+                className="p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 min-w-[38px] min-h-[38px] flex items-center justify-center"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="px-5 py-3 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center gap-3 text-xs">
+              <div><strong className="text-slate-500">Dose:</strong> <span className="font-semibold text-slate-800">{viewingRxDose.dose}</span></div>
+              <div>•</div>
+              <div><strong className="text-slate-500">Scheduled:</strong> <span className="font-semibold text-slate-800">{viewingRxDose.scheduledTime}</span></div>
+              <div>•</div>
+              <div><strong className="text-slate-500">Timing:</strong> <span className="font-semibold text-slate-800">{viewingRxDose.food === 'before' ? 'Before food' : viewingRxDose.food === 'after' ? 'After food' : 'Anytime'}</span></div>
+            </div>
+
+            <div className="p-4 overflow-y-auto flex-1 flex items-center justify-center bg-slate-900/5 min-h-[220px]">
+              <img
+                src={viewingRxDose.prescriptionUrl}
+                alt={`Doctor prescription for ${viewingRxDose.name}`}
+                className="max-h-[60vh] w-auto object-contain rounded-xl shadow-sm"
+              />
+            </div>
+
+            <div className="p-3.5 sm:p-4 bg-white border-t border-slate-100 flex items-center justify-between">
+              <a
+                href={viewingRxDose.prescriptionUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-bold text-slate-600 hover:text-[#04302c] underline min-h-[38px] flex items-center"
+              >
+                Open Original Image ↗
+              </a>
+              <button
+                type="button"
+                onClick={() => setViewingRxDose(null)}
+                className="px-5 py-2 rounded-full text-xs font-bold bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] font-heading min-h-[38px]"
+              >
+                Done Verifying
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

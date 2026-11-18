@@ -27,8 +27,14 @@ router.post('/', auth, async (req, res) => {
       endDate,
       currentStock,
       lowStockThresholdDays,
+      prescriptionUrl,
       prescriptionImageUrl
     } = req.body;
+
+    const rawUrl = (prescriptionUrl || prescriptionImageUrl || '').trim();
+    if (rawUrl && !/^https?:\/\//i.test(rawUrl)) {
+      return res.status(400).json({ message: 'Prescription URL must be a valid http:// or https:// address' });
+    }
 
     const effectiveEndDate = endDate || new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0];
 
@@ -53,7 +59,8 @@ router.post('/', auth, async (req, res) => {
       endDate: effectiveEndDate,
       currentStock: currentStock !== undefined ? Number(currentStock) : 10,
       lowStockThresholdDays: lowStockThresholdDays !== undefined ? Number(lowStockThresholdDays) : 3,
-      prescriptionImageUrl: prescriptionImageUrl || ''
+      prescriptionUrl: rawUrl,
+      prescriptionImageUrl: rawUrl
     });
 
     // Notify connected sockets of medicine list update
@@ -78,9 +85,20 @@ router.post('/', auth, async (req, res) => {
 // PUT /api/medicines/:id - Update medicine details (e.g. stock refill)
 router.put('/:id', auth, async (req, res) => {
   try {
+    const updateData = { ...req.body };
+
+    if (updateData.prescriptionUrl !== undefined || updateData.prescriptionImageUrl !== undefined) {
+      const url = (updateData.prescriptionUrl || updateData.prescriptionImageUrl || '').trim();
+      if (url && !/^https?:\/\//i.test(url)) {
+        return res.status(400).json({ message: 'Prescription URL must be a valid http:// or https:// address' });
+      }
+      updateData.prescriptionUrl = url;
+      updateData.prescriptionImageUrl = url;
+    }
+
     const updated = await Medicine.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body },
+      { $set: updateData },
       { new: true, runValidators: true }
     );
 

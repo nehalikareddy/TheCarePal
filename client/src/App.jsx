@@ -23,6 +23,7 @@ export default function App() {
   const [patients, setPatients] = useState([]);
   const [currentPatient, setCurrentPatient] = useState(null);
   const [isPairModalOpen, setIsPairModalOpen] = useState(false);
+  const [liveAlert, setLiveAlert] = useState(null);
 
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
@@ -93,19 +94,62 @@ export default function App() {
       setRefreshTrigger((prev) => prev + 1);
     };
 
+    const handleCaregiverJoined = (data) => {
+      if (user?.role === 'family' && data?.user && String(data.user._id) !== String(user._id)) {
+        setLiveAlert({
+          type: 'join',
+          message: `${data.user.name} (${data.user.role || 'caregiver'}) joined ${data.patientName || 'the'}'s care team.`
+        });
+        setRefreshTrigger((prev) => prev + 1);
+      }
+    };
+
+    const handleAccessRevoked = (data) => {
+      if (String(data.revokedUserId) === String(user?._id)) {
+        setLiveAlert({
+          type: 'revoked',
+          message: 'Your access to this patient was revoked by the family.'
+        });
+        setPatients((prev) => {
+          const remaining = prev.filter((p) => String(p._id) !== String(data.patientId));
+          setCurrentPatient(remaining.length > 0 ? remaining[0] : null);
+          return remaining;
+        });
+      } else {
+        setRefreshTrigger((prev) => prev + 1);
+      }
+    };
+
+    const handlePatientUpdated = (updatedPatient) => {
+      if (!updatedPatient) return;
+      setPatients((prev) =>
+        prev.map((p) => (String(p._id) === String(updatedPatient._id) ? updatedPatient : p))
+      );
+      setCurrentPatient((curr) =>
+        curr && String(curr._id) === String(updatedPatient._id) ? updatedPatient : curr
+      );
+      setRefreshTrigger((prev) => prev + 1);
+    };
+
     socket.on('scheduleUpdated', handleScheduleUpdated);
     socket.on('handoverAdded', handleScheduleUpdated);
+    socket.on('caregiverJoined', handleCaregiverJoined);
+    socket.on('accessRevoked', handleAccessRevoked);
+    socket.on('patientUpdated', handlePatientUpdated);
 
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
       socket.off('scheduleUpdated', handleScheduleUpdated);
       socket.off('handoverAdded', handleScheduleUpdated);
+      socket.off('caregiverJoined', handleCaregiverJoined);
+      socket.off('accessRevoked', handleAccessRevoked);
+      socket.off('patientUpdated', handlePatientUpdated);
       if (currentPatient) {
         leavePatientRoom(currentPatient._id);
       }
     };
-  }, [currentPatient]);
+  }, [currentPatient, user]);
 
   // 3. 30-Second Notification Reminder Interval
   useEffect(() => {
@@ -200,6 +244,32 @@ export default function App() {
 
       {/* Main Container: Mobile-First Max-W-3xl */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6">
+        {/* Real-time Care Team & Access Alert Banner */}
+        {liveAlert && (
+          <div
+            className={`mb-4 p-3.5 rounded-2xl flex items-center justify-between gap-3 text-xs sm:text-sm font-semibold animate-in fade-in shadow-sm ${
+              liveAlert.type === 'revoked'
+                ? 'bg-red-50 text-red-800 border border-red-200'
+                : 'bg-[#3fb6ad]/15 text-[#04302c] border border-[#3fb6ad]/30'
+            }`}
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <span
+                className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                  liveAlert.type === 'revoked' ? 'bg-red-500' : 'bg-[#3fb6ad] animate-pulse'
+                }`}
+              />
+              <span className="truncate">{liveAlert.message}</span>
+            </div>
+            <button
+              onClick={() => setLiveAlert(null)}
+              className="p-1 rounded-full hover:bg-black/5 text-slate-500 font-bold min-w-[28px] min-h-[28px] flex items-center justify-center shrink-0"
+              title="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        )}
         
         {/* Onboarding State for Users Without Any Linked Patients */}
         {!currentPatient ? (
@@ -232,6 +302,13 @@ export default function App() {
               onSelectPatient={(p) => setCurrentPatient(p)}
               onOpenPairModal={() => setIsPairModalOpen(true)}
               userRole={user.role}
+              onPatientUpdated={(updated) => {
+                setPatients((prev) =>
+                  prev.map((p) => (String(p._id) === String(updated._id) ? updated : p))
+                );
+                setCurrentPatient(updated);
+                setRefreshTrigger((prev) => prev + 1);
+              }}
             />
 
             {/* Dynamic View: Caretaker Checklist vs Family Overview based on genuine user.role */}
