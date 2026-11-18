@@ -83,9 +83,9 @@ export default function App() {
     };
   }, []);
 
-  // 1b. Automatically prompt profile completion once if not yet completed
+  // 1b. Automatically prompt profile completion once if not yet completed (caretakers only)
   useEffect(() => {
-    if (user && !user.profileCompleted) {
+    if (user && user.role === 'caretaker' && !user.profileCompleted) {
       const promptKey = `carepal_profile_prompted_${user.id || user._id}`;
       if (!sessionStorage.getItem(promptKey)) {
         setIsProfileModalOpen(true);
@@ -159,7 +159,9 @@ export default function App() {
           }))
         );
       })
-      .catch(() => {});
+      .catch(() => {
+        setPendingRequests([]);
+      });
   }, [currentPatient, user]);
 
   // 4. Setup Socket.IO for Real-Time Sync & Direct User Alerts
@@ -800,6 +802,7 @@ export default function App() {
         onClose={() => setIsPairModalOpen(false)}
         onPatientLinked={handlePatientLinked}
         userRole={user.role}
+        user={user}
       />
 
       {/* User Profile Modal */}

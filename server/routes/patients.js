@@ -113,7 +113,18 @@ router.get('/:id', auth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
   try {
     const callerId = String(req.user?.id || req.user?._id || req.user?.userId || req.user?.user?.id || '');
-    const { name, age, condition, profilePicture, emergencyContact, allergies, address } = req.body;
+    const {
+      name,
+      age,
+      condition,
+      profilePicture,
+      emergencyContact,
+      allergies,
+      address,
+      createdByRelation,
+      accountType,
+    } = req.body;
+
     if (!name || !age) {
       return res.status(400).json({ message: 'Patient name and age are required' });
     }
@@ -129,6 +140,8 @@ router.post('/', auth, async (req, res) => {
       emergencyContact: (emergencyContact || '').trim(),
       allergies: (allergies || '').trim(),
       address: (address || '').trim(),
+      createdByRelation: (createdByRelation || '').trim(),
+      accountType: accountType === 'self' ? 'self' : 'family',
       careCode,
       createdBy: callerId,
       family: caller?.role === 'family' ? [callerId] : [],
@@ -161,7 +174,17 @@ router.put('/:id', auth, async (req, res) => {
     }
     const { patient } = authResult;
 
-    const { name, age, condition, profilePicture, emergencyContact, allergies, address } = req.body;
+    const {
+      name,
+      age,
+      condition,
+      profilePicture,
+      emergencyContact,
+      allergies,
+      address,
+      createdByRelation,
+      accountType,
+    } = req.body;
 
     if (name !== undefined) patient.name = name.trim();
     if (age !== undefined && age !== null && age !== '') patient.age = Number(age);
@@ -170,6 +193,8 @@ router.put('/:id', auth, async (req, res) => {
     if (emergencyContact !== undefined) patient.emergencyContact = (emergencyContact || '').trim();
     if (allergies !== undefined) patient.allergies = (allergies || '').trim();
     if (address !== undefined) patient.address = (address || '').trim();
+    if (createdByRelation !== undefined) patient.createdByRelation = (createdByRelation || '').trim();
+    if (accountType !== undefined) patient.accountType = accountType === 'self' ? 'self' : 'family';
 
     await patient.save();
 

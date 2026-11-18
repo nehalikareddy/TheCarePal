@@ -203,8 +203,14 @@ export default function PatientBanner({
               </button>
             </div>
 
-            <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight mt-0.5 font-heading">
-              {patient.name} <span className="text-slate-400 font-normal">({patient.age} yrs)</span>
+            <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight mt-0.5 font-heading flex items-center gap-2 flex-wrap">
+              <span>{patient.name}</span>
+              <span className="text-slate-400 font-normal text-sm">({patient.age} yrs)</span>
+              {patient.createdByRelation && (
+                <span className="text-[10px] font-bold text-teal-300 bg-white/10 px-2 py-0.5 rounded-full border border-teal-400/30 font-heading">
+                  Relation: {patient.createdByRelation}
+                </span>
+              )}
             </h1>
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5 text-xs text-slate-300 font-medium">

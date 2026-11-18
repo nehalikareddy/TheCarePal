@@ -114,9 +114,16 @@ export default function SelectProfileView({
                   </span>
                 </div>
 
-                <h3 className="text-lg font-bold text-slate-900 font-heading group-hover:text-[#04302c] transition-colors">
-                  {pat.name}
-                </h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-lg font-bold text-slate-900 font-heading group-hover:text-[#04302c] transition-colors">
+                    {pat.name}
+                  </h3>
+                  {pat.createdByRelation && (
+                    <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full font-heading shrink-0">
+                      {pat.createdByRelation}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
                   {pat.age} years old
                 </p>

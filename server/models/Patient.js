@@ -8,6 +8,8 @@ const patientSchema = new mongoose.Schema({
   emergencyContact: { type: String, default: '', trim: true },
   allergies: { type: String, default: '', trim: true },
   address: { type: String, default: '', trim: true },
+  createdByRelation: { type: String, default: '', trim: true },
+  accountType: { type: String, enum: ['family', 'self'], default: 'family' },
   careCode: { type: String, required: true, unique: true, uppercase: true, trim: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   caretakers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
