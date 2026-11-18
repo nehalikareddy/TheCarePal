@@ -46,7 +46,8 @@ router.get('/weekly/:patientId', authMiddleware, async (req, res) => {
       const dateObj = new Date(`${dateStr}T12:00:00+05:30`);
       const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
       const displayDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      const rate = denominator > 0 ? Math.round((givenCount / denominator) * 100) : 100;
+      const dayTotal = denominator;
+      const rate = dayTotal > 0 ? Math.round((givenCount / dayTotal) * 100) : null;
 
       dailyStats.push({
         date: dateStr,
@@ -55,14 +56,21 @@ router.get('/weekly/:patientId', authMiddleware, async (req, res) => {
         label: `${dayName}, ${displayDate}`,
         given: givenCount,
         skipped: skippedCount,
-        scheduled: denominator,
+        scheduled: dayTotal,
+        total: dayTotal,
+        rate,
         adherenceRate: rate,
         percentage: rate,
       });
     }
 
-    const adherencePercentage =
-      totalScheduled > 0 ? Math.round((totalGiven / totalScheduled) * 1000) / 10 : 100;
+    const totalSlots = totalScheduled;
+    const hasScheduledDoses = totalSlots > 0;
+    const adherenceRate = hasScheduledDoses
+      ? Math.round((totalGiven / totalSlots) * 1000) / 10
+      : null;
+    const adherencePercentage = adherenceRate;
+    const weeklyAdherence = adherenceRate !== null ? Math.round(adherenceRate) : null;
 
     const skippedFeed = logs
       .filter((l) => l.status === 'skipped')
@@ -99,16 +107,20 @@ router.get('/weekly/:patientId', authMiddleware, async (req, res) => {
       .filter((item) => item.daysRemaining <= item.thresholdDays);
 
     res.json({
+      hasScheduledDoses,
+      adherenceRate,
       adherencePercentage,
-      weeklyAdherence: Math.round(adherencePercentage),
+      weeklyAdherence,
+      totalSlots,
+      totalScheduled: totalSlots,
       totalGiven,
-      totalScheduled,
       totalSkipped,
       summary: {
-        totalScheduled,
+        totalSlots,
+        totalScheduled: totalSlots,
         totalGiven,
         totalSkipped,
-        totalPending: Math.max(0, totalScheduled - (totalGiven + totalSkipped)),
+        totalPending: Math.max(0, totalSlots - (totalGiven + totalSkipped)),
       },
       dailyStats,
       dailyTrends: dailyStats,

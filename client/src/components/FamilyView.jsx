@@ -125,7 +125,21 @@ export default function FamilyView({ patient, user }) {
     );
   }
 
-  const weeklyRate = Math.round(adherenceData?.adherencePercentage ?? adherenceData?.weeklyAdherence ?? 0);
+  const totalSlots =
+    adherenceData?.totalSlots ??
+    adherenceData?.totalScheduled ??
+    adherenceData?.summary?.totalScheduled ??
+    0;
+
+  const rawRate =
+    adherenceData?.adherenceRate !== undefined && adherenceData?.adherenceRate !== null
+      ? adherenceData.adherenceRate
+      : adherenceData?.adherencePercentage !== undefined && adherenceData?.adherencePercentage !== null
+      ? adherenceData.adherencePercentage
+      : null;
+
+  const hasScheduledDoses = totalSlots > 0 && rawRate !== null;
+  const weeklyRate = hasScheduledDoses ? Math.round(rawRate) : null;
   const lowStockAlerts = adherenceData?.lowStockAlerts || [];
   const skippedFeed = adherenceData?.skippedFeed || adherenceData?.skippedDosesFeed || [];
   const dailyTrends = adherenceData?.dailyStats || adherenceData?.dailyTrends || [];
@@ -364,10 +378,18 @@ export default function FamilyView({ patient, user }) {
                       cx="56"
                       cy="56"
                       r="46"
-                      stroke={weeklyRate >= 85 ? '#3fb6ad' : weeklyRate >= 70 ? '#D97706' : '#DC2626'}
+                      stroke={
+                        !hasScheduledDoses
+                          ? '#CBD5E1'
+                          : weeklyRate >= 85
+                          ? '#3fb6ad'
+                          : weeklyRate >= 70
+                          ? '#D97706'
+                          : '#DC2626'
+                      }
                       strokeWidth="10"
                       strokeDasharray={289}
-                      strokeDashoffset={289 - (289 * weeklyRate) / 100}
+                      strokeDashoffset={hasScheduledDoses ? 289 - (289 * weeklyRate) / 100 : 289}
                       strokeLinecap="round"
                       fill="transparent"
                       className="transition-all duration-1000 ease-out"
@@ -375,7 +397,7 @@ export default function FamilyView({ patient, user }) {
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                     <span className="text-xl sm:text-2xl font-extrabold text-[#101820] tracking-tight font-heading">
-                      {weeklyRate}%
+                      {hasScheduledDoses ? `${weeklyRate}%` : '--'}
                     </span>
                     <span className="text-[10px] font-bold text-slate-400 uppercase font-heading">Adherence</span>
                   </div>
@@ -389,10 +411,18 @@ export default function FamilyView({ patient, user }) {
                     </span>
                   </div>
                   <h3 className="text-base sm:text-lg font-bold text-[#101820] mt-0.5 font-heading">
-                    {weeklyRate >= 90 ? 'Excellent Medication Routine' : weeklyRate >= 75 ? 'Good Routine Adherence' : 'Needs Immediate Attention'}
+                    {!hasScheduledDoses
+                      ? 'No Doses Scheduled Yet'
+                      : weeklyRate >= 90
+                      ? 'Excellent Medication Routine'
+                      : weeklyRate >= 75
+                      ? 'Good Routine Adherence'
+                      : 'Needs Immediate Attention'}
                   </h3>
                   <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto sm:mx-0">
-                    {weeklyRate >= 90
+                    {!hasScheduledDoses
+                      ? 'Add medicines to start tracking 7-day adherence and daily trends.'
+                      : weeklyRate >= 90
                       ? 'The patient has successfully taken prescribed medications on time with minimal skips.'
                       : 'Review the skipped doses log below to address patient refusal or scheduling gaps.'}
                   </p>
@@ -430,28 +460,46 @@ export default function FamilyView({ patient, user }) {
 
               <div className="grid grid-cols-7 gap-1 sm:gap-3 text-center overflow-x-hidden">
                 {dailyTrends.map((day) => {
-                  const rate = day.adherenceRate ?? day.percentage ?? 0;
-                  const heightPct = Math.max(15, rate);
-                  const isHealthy = rate >= 85;
-                  const isModerate = rate >= 70 && rate < 85;
+                  const dayTotal = day.total ?? day.scheduled ?? day.dayTotal ?? 0;
+                  const dayRate =
+                    day.rate !== undefined && day.rate !== null
+                      ? day.rate
+                      : day.adherenceRate !== undefined && day.adherenceRate !== null
+                      ? day.adherenceRate
+                      : null;
+                  const hasDayDoses = dayTotal > 0 && dayRate !== null;
+
+                  const rate = hasDayDoses ? Math.round(dayRate) : null;
+                  const heightPct = hasDayDoses ? Math.max(15, rate) : 0;
+                  const isHealthy = hasDayDoses && rate >= 85;
+                  const isModerate = hasDayDoses && rate >= 70 && rate < 85;
 
                   return (
                     <div key={day.date} className="flex flex-col items-center min-w-0">
-                      <span className="text-[9px] sm:text-[10px] font-bold text-slate-600 mb-1 font-heading">{rate}%</span>
+                      <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-1 font-heading">
+                        {hasDayDoses ? `${rate}%` : '—'}
+                      </span>
 
                       {/* Bar Container */}
                       <div className="w-full bg-slate-100 h-20 sm:h-24 rounded-lg sm:rounded-xl p-0.5 sm:p-1 flex flex-col justify-end">
-                        <div
-                          style={{ height: `${heightPct}%` }}
-                          className={`w-full rounded-md sm:rounded-lg transition-all duration-500 ${
-                            isHealthy
-                              ? 'bg-[#3fb6ad]'
-                              : isModerate
-                              ? 'bg-amber-500'
-                              : 'bg-red-500'
-                          }`}
-                          title={`${day.dayName || day.label}: ${day.given}/${day.scheduled} doses given`}
-                        />
+                        {hasDayDoses ? (
+                          <div
+                            style={{ height: `${heightPct}%` }}
+                            className={`w-full rounded-md sm:rounded-lg transition-all duration-500 ${
+                              isHealthy
+                                ? 'bg-[#3fb6ad]'
+                                : isModerate
+                                ? 'bg-amber-500'
+                                : 'bg-red-500'
+                            }`}
+                            title={`${day.dayName || day.label}: ${day.given || 0}/${dayTotal} doses given`}
+                          />
+                        ) : (
+                          <div
+                            className="w-full h-1 bg-slate-200/60 rounded-full"
+                            title={`${day.dayName || day.label}: No scheduled doses`}
+                          />
+                        )}
                       </div>
 
                       <span className="text-[10px] sm:text-xs font-bold text-[#101820] mt-1.5 sm:mt-2 font-heading truncate w-full">{day.dayName || day.label?.split(',')[0]}</span>
