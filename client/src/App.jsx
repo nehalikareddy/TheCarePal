@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import PatientBanner from './components/PatientBanner';
 import AuthView from './components/AuthView';
@@ -21,7 +21,9 @@ import {
 } from './utils/notifications';
 import {
   initAudioOnUserInteraction,
+  unlockAudio,
   playApprovalChime,
+  playOverdueAlertChime,
 } from './utils/notificationSound';
 import {
   HeartHandshake,
@@ -31,7 +33,10 @@ import {
   Shield,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
 } from 'lucide-react';
+
+const OVERDUE_GRACE_MINUTES = 15;
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -47,15 +52,31 @@ export default function App() {
   const [pendingRequests, setPendingRequests] = useState([]); // Family view: incoming caregiver requests
   const [pendingApprovals, setPendingApprovals] = useState([]); // Caretaker view: requested patients awaiting approval
 
+  // Automatic Overdue Medication Watcher States
+  const [overdueAlerts, setOverdueAlerts] = useState([]);
+  const alertedOverdueRef = useRef(new Set());
+
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
 
   // Key to force refresh child views on socket events
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // 1. Unlock browser Web Audio API on first user interaction
+  // 1. Silent Audio Unlock on user's first pointerdown or keydown event
   useEffect(() => {
-    initAudioOnUserInteraction();
+    const handleFirstInteraction = () => {
+      unlockAudio();
+      window.removeEventListener('pointerdown', handleFirstInteraction);
+      window.removeEventListener('keydown', handleFirstInteraction);
+    };
+
+    window.addEventListener('pointerdown', handleFirstInteraction, { once: true });
+    window.addEventListener('keydown', handleFirstInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', handleFirstInteraction);
+      window.removeEventListener('keydown', handleFirstInteraction);
+    };
   }, []);
 
   // 2. Initial Authentication & Profile Load
@@ -163,6 +184,19 @@ export default function App() {
     const handleScheduleUpdated = (payload) => {
       console.log('Real-time sync event received:', payload);
       setRefreshTrigger((prev) => prev + 1);
+
+      // Automatically clear the banner if the dose is marked given or skipped via live Socket.IO updates
+      if (payload && (payload.status === 'given' || payload.status === 'skipped')) {
+        setOverdueAlerts((prev) =>
+          prev.filter((alert) => {
+            const isMatch =
+              (payload.medicineId && String(alert.medicineId) === String(payload.medicineId) &&
+               payload.scheduledTime && String(alert.scheduledTime) === String(payload.scheduledTime)) ||
+              (alert.key === `${payload.medicineId}_${payload.scheduledTime}_${payload.scheduledDate}`);
+            return !isMatch;
+          })
+        );
+      }
     };
 
     // Family Approval Workflow: Caregiver requests access
@@ -271,36 +305,91 @@ export default function App() {
     };
   }, [currentPatient, user]);
 
-  // 5. 30-Second Notification Reminder Interval
+  // 5. Automatic Overdue Medication Watcher & On-Time Reminder (Runs every 30 seconds for activePatient)
   useEffect(() => {
-    if (!currentPatient) return;
+    if (!currentPatient?._id) return;
 
-    const interval = setInterval(async () => {
+    const checkOverdueSchedule = async () => {
       try {
         const now = new Date();
-        const currentHours = String(now.getHours()).padStart(2, '0');
-        const currentMinutes = String(now.getMinutes()).padStart(2, '0');
-        const currentTimeStr = `${currentHours}:${currentMinutes}`;
+        const currentHours = now.getHours();
+        const currentMins = now.getMinutes();
+        const currentTotalMinutes = currentHours * 60 + currentMins;
+        const currentTimeStr = `${String(currentHours).padStart(2, '0')}:${String(currentMins).padStart(2, '0')}`;
 
         const res = await api.get(`/schedule/today/${currentPatient._id}`);
         const doses = res.data.doses || [];
+        const todayDate = res.data.date || new Date().toISOString().split('T')[0];
 
-        // Check if any pending dose matches the current time
-        const matchingDose = doses.find(
+        // 1. On-time notification reminder (matching exact current minute)
+        const onTimeDose = doses.find(
           (d) => d.status === 'pending' && d.scheduledTime === currentTimeStr
         );
-
-        if (matchingDose) {
+        if (onTimeDose) {
           playNotificationChime();
-          sendBrowserNotification(`Time for ${matchingDose.name} (${matchingDose.strength})!`, {
-            body: `Scheduled at ${matchingDose.scheduledTime} for ${currentPatient.name}. Please administer.`,
-            tag: `dose-${matchingDose.doseId}`,
+          sendBrowserNotification(`Time for ${onTimeDose.name} (${onTimeDose.strength || onTimeDose.dose})!`, {
+            body: `Scheduled at ${onTimeDose.scheduledTime} for ${currentPatient.name}. Please administer.`,
+            tag: `dose-${onTimeDose.doseId}`,
           });
         }
+
+        // 2. Overdue dose check (Grace period >= OVERDUE_GRACE_MINUTES)
+        const newOverdueAlerts = [];
+        let hasNewOverdue = false;
+
+        doses.forEach((dose) => {
+          if (dose.status === 'pending' && dose.scheduledTime) {
+            const [sh, sm] = dose.scheduledTime.split(':').map((v) => parseInt(v, 10) || 0);
+            const scheduledTotalMinutes = sh * 60 + sm;
+            const diffMinutes = currentTotalMinutes - scheduledTotalMinutes;
+
+            if (diffMinutes >= OVERDUE_GRACE_MINUTES) {
+              const doseDate = dose.scheduledDate || todayDate;
+              const doseKey = `${dose.medicineId}_${dose.scheduledTime}_${doseDate}`;
+              const doseAmount = dose.dose || dose.strength || '';
+
+              const alertItem = {
+                key: doseKey,
+                medicineId: dose.medicineId,
+                scheduledTime: dose.scheduledTime,
+                scheduledDate: doseDate,
+                medicineName: dose.name,
+                dose: doseAmount,
+                message: `Overdue Dose: ${dose.name} (${doseAmount}) was scheduled for ${dose.scheduledTime}.`,
+              };
+
+              newOverdueAlerts.push(alertItem);
+
+              if (!alertedOverdueRef.current.has(doseKey)) {
+                alertedOverdueRef.current.add(doseKey);
+                hasNewOverdue = true;
+              }
+            }
+          }
+        });
+
+        if (hasNewOverdue) {
+          playOverdueAlertChime();
+        }
+
+        // Automatically sync overdueAlerts with current schedule, removing any that were logged
+        setOverdueAlerts((prev) => {
+          if (newOverdueAlerts.length === 0) return [];
+          const merged = [...prev];
+          newOverdueAlerts.forEach((item) => {
+            if (!merged.some((m) => m.key === item.key)) {
+              merged.push(item);
+            }
+          });
+          return merged.filter((item) => newOverdueAlerts.some((na) => na.key === item.key));
+        });
       } catch (err) {
-        // quiet fail on interval
+        // Quiet fail on periodic background poll
       }
-    }, 30000);
+    };
+
+    checkOverdueSchedule();
+    const interval = setInterval(checkOverdueSchedule, 30000);
 
     return () => clearInterval(interval);
   }, [currentPatient]);
@@ -390,6 +479,8 @@ export default function App() {
     setCurrentPatient(null);
     setPendingRequests([]);
     setPendingApprovals([]);
+    setOverdueAlerts([]);
+    alertedOverdueRef.current.clear();
   };
 
   const handlePatientLinked = (patientOrPending) => {
@@ -479,11 +570,51 @@ export default function App() {
         user={user}
         onLogout={handleLogout}
         isSocketConnected={isSocketConnected}
-        onRefresh={() => setRefreshTrigger((prev) => prev + 1)}
       />
 
       {/* Main Container: Mobile-First Max-W-3xl */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6">
+        {/* Automatic Overdue Medication Watcher Banners */}
+        {overdueAlerts && overdueAlerts.length > 0 && (
+          <div className="space-y-3 mb-4">
+            {overdueAlerts.map((alertItem) => (
+              <div
+                key={alertItem.key}
+                className="p-3.5 sm:p-4 rounded-2xl bg-amber-500/15 border-2 border-amber-500/60 text-amber-950 shadow-md flex items-center justify-between gap-3 animate-in fade-in"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-full bg-amber-500/25 text-amber-900 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-5 h-5 text-amber-800" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-600 text-white px-2 py-0.5 rounded-full font-heading">
+                        Overdue Dose
+                      </span>
+                      <span className="text-xs text-amber-800 font-semibold truncate hidden sm:inline">
+                        Grace period exceeded (&ge; {OVERDUE_GRACE_MINUTES}m)
+                      </span>
+                    </div>
+                    <p className="text-sm font-bold text-amber-950 font-heading mt-0.5">
+                      {alertItem.message}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOverdueAlerts((prev) => prev.filter((a) => a.key !== alertItem.key))
+                  }
+                  className="p-2 text-amber-800 hover:text-amber-950 hover:bg-amber-200/60 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-full shrink-0 font-bold transition-colors"
+                  title="Dismiss alert"
+                  aria-label="Dismiss alert"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         {/* Family View: Real-Time Incoming Caregiver Approval Request Banners */}
         {user.role === 'family' &&
           pendingRequests.map((reqItem) => (
