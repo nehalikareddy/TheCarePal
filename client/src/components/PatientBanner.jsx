@@ -218,19 +218,19 @@ export default function PatientBanner({
                 )}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-slate-300 font-medium">
-                <span>
+              <div className="flex flex-col gap-0.5 mt-1.5 text-xs text-slate-300 font-medium">
+                <div>
                   Condition: <span className="text-white font-semibold">{patient.condition || 'Home Care Assistance'}</span>
-                </span>
+                </div>
                 {patient.emergencyContact && (
-                  <span>
+                  <div>
                     Emergency: <span className="text-emerald-300 font-semibold">{patient.emergencyContact}</span>
-                  </span>
+                  </div>
                 )}
                 {patient.address && (
-                  <span className="truncate max-w-[260px] text-slate-300">
+                  <div>
                     Location: <span className="text-slate-200">{patient.address}</span>
-                  </span>
+                  </div>
                 )}
               </div>
 
