@@ -9,7 +9,10 @@ const authMiddleware = async (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'thecarepal_secret');
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'carepal_fallback_secret_2026'
+    );
 
     const decodedId =
       decoded.id ||

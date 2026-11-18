@@ -142,20 +142,22 @@ export default function App() {
 
   // 3. For Family: Fetch existing pending approval requests when currentPatient changes
   useEffect(() => {
-    if (!currentPatient || user?.role !== 'family') return;
+    if (!currentPatient || user?.role !== 'family') {
+      setPendingRequests([]);
+      return;
+    }
 
     api
       .get(`/patients/${currentPatient._id}/members`)
       .then((res) => {
-        if (res.data.pendingMembers && res.data.pendingMembers.length > 0) {
-          setPendingRequests(
-            res.data.pendingMembers.map((pm) => ({
-              patientId: currentPatient._id,
-              patientName: currentPatient.name,
-              request: pm,
-            }))
-          );
-        }
+        const list = res.data.pendingMembers || [];
+        setPendingRequests(
+          list.map((pm) => ({
+            patientId: currentPatient._id,
+            patientName: currentPatient.name,
+            request: pm,
+          }))
+        );
       })
       .catch(() => {});
   }, [currentPatient, user]);
@@ -588,7 +590,7 @@ export default function App() {
       />
 
       {/* Main Container */}
-      <main className={`flex-1 w-full mx-auto px-4 sm:px-6 py-6 ${currentPatient ? 'max-w-3xl' : 'max-w-5xl'}`}>
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Automatic Overdue Medication Watcher Banners */}
         {overdueAlerts && overdueAlerts.length > 0 && (
           <div className="space-y-3 mb-4">

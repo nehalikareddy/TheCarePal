@@ -118,6 +118,9 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ message: 'Patient name and age are required' });
     }
 
+    const caller = await User.findById(callerId);
+    const isCaretaker = caller?.role === 'caretaker';
+
     const careCode = await generateUniqueCareCode();
     const patient = await Patient.create({
       name,
@@ -125,7 +128,8 @@ router.post('/', auth, async (req, res) => {
       condition: condition || 'Home Care',
       careCode,
       createdBy: callerId,
-      family: [callerId],
+      family: isCaretaker ? [] : [callerId],
+      caretakers: isCaretaker ? [callerId] : [],
       pendingMembers: []
     });
 

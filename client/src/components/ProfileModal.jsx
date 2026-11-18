@@ -1,33 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { User, Camera, Upload, Trash2, X, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Camera, Trash2, X, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 function getInitials(name = '') {
-  return name
-    .trim()
-    .split(/\s+/)
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase() || 'U';
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || 'U'
+  );
 }
 
-export default function ProfileModal({ isOpen, onClose, user, onUpdateUser, isFirstTimePrompt = false }) {
-  if (!isOpen || !user) return null;
-
-  const [name, setName] = useState(user.name || '');
-  const [profilePicture, setProfilePicture] = useState(user.profilePicture || '');
-  const [age, setAge] = useState(user.age || '');
-  const [sex, setSex] = useState(user.sex || '');
-  const [qualification, setQualification] = useState(user.qualification || '');
-  const [accountType, setAccountType] = useState(user.accountType || 'family');
-  const [relation, setRelation] = useState(user.relation || '');
-  const [address, setAddress] = useState(user.address || '');
+export default function ProfileModal({
+  isOpen,
+  onClose,
+  user,
+  onUpdateUser,
+  isFirstTimePrompt = false,
+}) {
+  // All hooks MUST be declared at the top before any conditional returns
+  const [name, setName] = useState(user?.name || '');
+  const [profilePicture, setProfilePicture] = useState(user?.profilePicture || '');
+  const [age, setAge] = useState(user?.age ?? '');
+  const [sex, setSex] = useState(user?.sex || '');
+  const [qualification, setQualification] = useState(user?.qualification || '');
+  const [accountType, setAccountType] = useState(user?.accountType || 'family');
+  const [relation, setRelation] = useState(user?.relation || '');
+  const [address, setAddress] = useState(user?.address || '');
 
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Sync form fields whenever modal opens or user object changes
+  useEffect(() => {
+    if (isOpen && user) {
+      setName(user.name || '');
+      setProfilePicture(user.profilePicture || '');
+      setAge(user.age ?? '');
+      setSex(user.sex || '');
+      setQualification(user.qualification || '');
+      setAccountType(user.accountType || 'family');
+      setRelation(user.relation || '');
+      setAddress(user.address || '');
+      setError('');
+      setSuccessMessage('');
+    }
+  }, [isOpen, user]);
+
+  if (!isOpen || !user) return null;
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
