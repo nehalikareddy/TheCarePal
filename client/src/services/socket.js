@@ -1,38 +1,41 @@
 import { io } from 'socket.io-client';
+import { API_BASE_URL } from './api';
 
-const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const SOCKET_URL = rawUrl.replace(/\/+$/, '');
+let socketInstance = null;
 
-let socket = null;
-
-export const initSocket = () => {
-  if (!socket) {
-    socket = io(SOCKET_URL, {
+export function getSocket() {
+  if (!socketInstance) {
+    socketInstance = io(API_BASE_URL, {
       transports: ['websocket', 'polling'],
-      reconnectionAttempts: 10,
-      reconnectionDelay: 1000,
+      autoConnect: true,
     });
   }
-  return socket;
-};
+  return socketInstance;
+}
 
-export const getSocket = () => {
-  if (!socket) {
-    return initSocket();
-  }
-  return socket;
-};
+export function initSocket() {
+  return getSocket();
+}
 
-export const joinPatientRoom = (patientId) => {
+export function joinPatientRoom(patientId) {
   const s = getSocket();
   if (s && patientId) {
+    s.emit('joinPatientRoom', patientId);
     s.emit('joinPatient', patientId);
   }
-};
+}
 
-export const leavePatientRoom = (patientId) => {
+export function leavePatientRoom(patientId) {
   const s = getSocket();
   if (s && patientId) {
+    s.emit('leavePatientRoom', patientId);
     s.emit('leavePatient', patientId);
   }
-};
+}
+
+export function disconnectSocket() {
+  if (socketInstance) {
+    socketInstance.disconnect();
+    socketInstance = null;
+  }
+}
