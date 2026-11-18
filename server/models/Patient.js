@@ -14,6 +14,11 @@ const patientSchema = new mongoose.Schema({
     name: String,
     email: String,
     role: String,
+    profilePicture: { type: String, default: '' },
+    age: { type: Number, default: null },
+    sex: { type: String, default: '' },
+    qualification: { type: String, default: '' },
+    address: { type: String, default: '' },
     requestedAt: { type: Date, default: Date.now }
   }]
 }, { timestamps: true });

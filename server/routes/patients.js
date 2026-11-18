@@ -194,6 +194,11 @@ router.post('/join', auth, async (req, res) => {
       name: currentUser.name,
       email: currentUser.email,
       role: currentUser.role,
+      profilePicture: currentUser.profilePicture || '',
+      age: currentUser.age || null,
+      sex: currentUser.sex || '',
+      qualification: currentUser.qualification || '',
+      address: currentUser.address || '',
       requestedAt: new Date()
     };
     patient.pendingMembers = patient.pendingMembers || [];
@@ -256,7 +261,7 @@ router.get('/:id/members', auth, async (req, res) => {
 
     const members = await User.find(
       { patients: patientId },
-      '_id name email role createdAt'
+      '_id name email role profilePicture age sex qualification address createdAt'
     ).sort({ role: 1, name: 1 });
 
     res.json({
@@ -316,14 +321,16 @@ router.post('/:id/requests/:userId/approve', auth, async (req, res) => {
           _id: targetUser._id,
           name: targetUser.name,
           email: targetUser.email,
-          role: targetUser.role
+          role: targetUser.role,
+          profilePicture: targetUser.profilePicture || '',
+          qualification: targetUser.qualification || '',
         }
       });
     }
 
     const members = await User.find(
       { patients: patientId },
-      '_id name email role createdAt'
+      '_id name email role profilePicture age sex qualification address createdAt'
     ).sort({ role: 1, name: 1 });
 
     res.json({
@@ -363,7 +370,7 @@ router.post('/:id/requests/:userId/reject', auth, async (req, res) => {
 
     const members = await User.find(
       { patients: patientId },
-      '_id name email role createdAt'
+      '_id name email role profilePicture age sex qualification address createdAt'
     ).sort({ role: 1, name: 1 });
 
     res.json({

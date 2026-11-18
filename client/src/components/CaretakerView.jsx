@@ -34,19 +34,6 @@ export default function CaretakerView({ patient, user }) {
   // Safe fallback default: derived doses from scheduleData
   const doses = scheduleData?.doses || scheduleData?.slots || [];
 
-  // Collect all unique medicines in today's schedule that have an attached prescriptionUrl
-  // STRICTLY at the top before any conditional returns (Rules of Hooks)
-  const rxMedicines = useMemo(() => {
-    const map = new Map();
-    (doses || []).forEach((d) => {
-      const key = d?.medicineId || d?.name;
-      if (d?.prescriptionUrl && !map.has(key)) {
-        map.set(key, d);
-      }
-    });
-    return Array.from(map.values());
-  }, [doses]);
-
   const openRxModal = (list, startIndex = 0) => {
     setRxModalList(list || []);
     setCurrentRxIndex(startIndex >= 0 && startIndex < (list?.length || 0) ? startIndex : 0);
@@ -229,12 +216,7 @@ export default function CaretakerView({ patient, user }) {
                         {dose.prescriptionUrl && (
                           <button
                             type="button"
-                            onClick={() => {
-                              const idx = rxMedicines.findIndex(
-                                (m) => (m.medicineId || m.name) === (dose.medicineId || dose.name)
-                              );
-                              openRxModal(rxMedicines.length > 0 ? rxMedicines : [dose], idx >= 0 ? idx : 0);
-                            }}
+                            onClick={() => openRxModal([dose], 0)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-[#3fb6ad]/15 text-[#04302c] hover:bg-[#3fb6ad]/25 transition-all min-h-[38px] border border-[#3fb6ad]/30 font-heading"
                             title="Verify attached doctor's prescription"
                           >
@@ -351,43 +333,6 @@ export default function CaretakerView({ patient, user }) {
         </div>
       </div>
 
-      {/* Top Doctor Prescriptions Banner */}
-      {rxMedicines.length > 0 && (
-        <div className="p-4 sm:p-5 rounded-2xl bg-[#101820] text-white border border-[#3fb6ad]/40 shadow-[0_4px_16px_rgba(16,24,32,0.12)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start sm:items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-[#3fb6ad]/20 border border-[#3fb6ad]/30 flex items-center justify-center shrink-0 shadow-inner">
-              <FileText className="w-6 h-6 text-[#3fb6ad]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#3fb6ad] font-heading">
-                  Official Medical Orders
-                </span>
-                <span className="text-[10px] font-bold bg-[#3fb6ad]/20 text-[#3fb6ad] px-2 py-0.5 rounded-full border border-[#3fb6ad]/40 font-heading">
-                  Verified Rx
-                </span>
-              </div>
-              <h3 className="text-sm sm:text-base font-bold text-white font-heading mt-0.5">
-                Doctor Prescriptions Attached ({rxMedicines.length})
-              </h3>
-              <p className="text-xs text-slate-300 mt-0.5">
-                {rxMedicines.length === 1
-                  ? `Doctor prescription image attached for ${rxMedicines[0].name}.`
-                  : `Original prescription images attached for ${rxMedicines.map((m) => m.name).join(', ')}.`}
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => openRxModal(rxMedicines, 0)}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] active:scale-[0.98] transition-all min-h-[44px] font-heading shadow-[0_4px_14px_rgba(63,182,173,0.3)] shrink-0"
-          >
-            <FileText className="w-4 h-4 shrink-0" />
-            <span>{rxMedicines.length > 1 ? 'View Prescriptions' : 'View Prescription'}</span>
-          </button>
-        </div>
-      )}
 
       {/* Schedule Grouped Sections */}
       <div>

@@ -5,6 +5,8 @@ import AuthView from './components/AuthView';
 import CaretakerView from './components/CaretakerView';
 import FamilyView from './components/FamilyView';
 import PairPatientModal from './components/PairPatientModal';
+import ProfileModal from './components/ProfileModal';
+import SelectProfileView from './components/SelectProfileView';
 
 import api from './services/api';
 import {
@@ -46,6 +48,8 @@ export default function App() {
   const [patients, setPatients] = useState([]);
   const [currentPatient, setCurrentPatient] = useState(null);
   const [isPairModalOpen, setIsPairModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isFirstTimeProfile, setIsFirstTimeProfile] = useState(false);
   const [liveAlert, setLiveAlert] = useState(null);
 
   // Caregiver Access Approval Workflow States
@@ -79,6 +83,18 @@ export default function App() {
     };
   }, []);
 
+  // 1b. Automatically prompt profile completion once if not yet completed
+  useEffect(() => {
+    if (user && !user.profileCompleted) {
+      const promptKey = `carepal_profile_prompted_${user.id || user._id}`;
+      if (!sessionStorage.getItem(promptKey)) {
+        setIsProfileModalOpen(true);
+        setIsFirstTimeProfile(true);
+        sessionStorage.setItem(promptKey, 'true');
+      }
+    }
+  }, [user]);
+
   // 2. Initial Authentication & Profile Load
   useEffect(() => {
     requestNotificationPermission();
@@ -100,10 +116,7 @@ export default function App() {
         const patRes = await api.get('/patients');
         const patientList = patRes.data.patients || [];
         setPatients(patientList);
-
-        if (patientList.length > 0) {
-          setCurrentPatient(patientList[0]);
-        }
+        // Do not auto-set currentPatient so user lands on Select Profile screen
 
         // If caretaker, fetch any pending approval requests across page refreshes
         if (userData.role === 'caretaker') {
@@ -457,9 +470,7 @@ export default function App() {
       const patRes = await api.get('/patients');
       const patientList = patRes.data.patients || [];
       setPatients(patientList);
-      if (patientList.length > 0) {
-        setCurrentPatient(patientList[0]);
-      }
+      // Do not auto-set currentPatient so user lands on Select Profile screen
 
       if (userData.role === 'caretaker') {
         const pendingRes = await api.get('/patients/my-pending');
@@ -570,10 +581,14 @@ export default function App() {
         user={user}
         onLogout={handleLogout}
         isSocketConnected={isSocketConnected}
+        onOpenProfile={() => {
+          setIsFirstTimeProfile(false);
+          setIsProfileModalOpen(true);
+        }}
       />
 
-      {/* Main Container: Mobile-First Max-W-3xl */}
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6">
+      {/* Main Container */}
+      <main className={`flex-1 w-full mx-auto px-4 sm:px-6 py-6 ${currentPatient ? 'max-w-3xl' : 'max-w-5xl'}`}>
         {/* Automatic Overdue Medication Watcher Banners */}
         {overdueAlerts && overdueAlerts.length > 0 && (
           <div className="space-y-3 mb-4">
@@ -615,6 +630,7 @@ export default function App() {
             ))}
           </div>
         )}
+
         {/* Family View: Real-Time Incoming Caregiver Approval Request Banners */}
         {user.role === 'family' &&
           pendingRequests.map((reqItem) => (
@@ -685,34 +701,6 @@ export default function App() {
             </div>
           ))}
 
-        {/* Caretaker View: Awaiting Family Approval Status Card */}
-        {user.role === 'caretaker' && pendingApprovals.length > 0 && (
-          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 shadow-sm animate-in fade-in">
-            <div className="flex items-start gap-3.5">
-              <div className="p-2 bg-amber-200/80 rounded-xl text-amber-800 shrink-0 mt-0.5">
-                <Clock className="w-5 h-5 text-amber-700" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 font-heading">
-                    Pairing Status
-                  </span>
-                  <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-heading">
-                    Pending Approval
-                  </span>
-                </div>
-                <h3 className="text-sm sm:text-base font-bold text-amber-950 font-heading mt-0.5">
-                  Awaiting Family Approval ({pendingApprovals.length})
-                </h3>
-                <p className="text-xs text-amber-800 mt-1 leading-relaxed">
-                  You have entered the Care Code for{' '}
-                  <strong>{pendingApprovals.map((p) => p.name).join(', ')}</strong>. The family administrator has been notified. Medical records and daily schedules remain protected and will unlock automatically once approved.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Real-time Care Team & Access Alert Banner */}
         {liveAlert && (
           <div
@@ -746,28 +734,19 @@ export default function App() {
           </div>
         )}
 
-        {/* Onboarding State for Users Without Any Linked Patients */}
+        {/* Dedicated "Select Profile" Screen or Patient Care Dashboard */}
         {!currentPatient ? (
-          <div className="bg-white border border-[#e6ecf1] rounded-3xl p-8 sm:p-10 text-center shadow-[0_2px_8px_rgba(0,0,0,0.04)] my-6">
-            <div className="w-16 h-16 rounded-full bg-[#3fb6ad]/15 text-[#04302c] mx-auto flex items-center justify-center mb-4 shadow-xs">
-              <HeartHandshake className="w-8 h-8 text-[#3fb6ad]" />
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-[#101820] font-heading mb-2">
-              Welcome to TheCarePal, {user.name}!
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto mb-6 leading-relaxed">
-              {user.role === 'family'
-                ? 'To begin tracking and managing medication schedules, create a patient profile for your loved one. A unique 6-digit Care Code will be generated for your caregivers.'
-                : 'To begin administering and logging medications, link with your patient using the 6-digit Care Code provided by their family.'}
-            </p>
-            <button
-              onClick={() => setIsPairModalOpen(true)}
-              className="inline-flex items-center gap-2 py-3 px-6 rounded-full font-bold text-xs sm:text-sm bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] font-heading shadow-[0_4px_14px_rgba(63,182,173,0.3)] hover:shadow-[0_8px_20px_rgba(63,182,173,0.45)] transition-all active:scale-[0.98]"
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>{user.role === 'family' ? 'Create Patient Profile' : 'Enter 6-Digit Care Code'}</span>
-            </button>
-          </div>
+          <SelectProfileView
+            user={user}
+            patients={patients}
+            pendingApprovals={pendingApprovals}
+            onSelectPatient={(p) => setCurrentPatient(p)}
+            onOpenPairModal={() => setIsPairModalOpen(true)}
+            onOpenProfile={() => {
+              setIsFirstTimeProfile(false);
+              setIsProfileModalOpen(true);
+            }}
+          />
         ) : (
           <>
             {/* Patient Context Banner with 1-Click Copyable 6-digit Code */}
@@ -775,6 +754,7 @@ export default function App() {
               patient={currentPatient}
               patientsList={patients}
               onSelectPatient={(p) => setCurrentPatient(p)}
+              onBackToProfiles={() => setCurrentPatient(null)}
               onOpenPairModal={() => setIsPairModalOpen(true)}
               userRole={user.role}
               onPatientUpdated={(updated) => {
@@ -818,6 +798,18 @@ export default function App() {
         onClose={() => setIsPairModalOpen(false)}
         onPatientLinked={handlePatientLinked}
         userRole={user.role}
+      />
+
+      {/* User Profile Modal */}
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        user={user}
+        onUpdateUser={(updatedUser) => {
+          setUser(updatedUser);
+          localStorage.setItem('thecarepal_user', JSON.stringify(updatedUser));
+        }}
+        isFirstTimePrompt={isFirstTimeProfile}
       />
     </div>
   );
