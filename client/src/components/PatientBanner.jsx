@@ -174,147 +174,147 @@ export default function PatientBanner({
   };
 
   return (
-    <div className="bg-[#101820] text-white rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.12)] border border-slate-700/60 mb-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        {/* Patient Profile Details */}
-        <div className="flex items-start gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
-            {patient.profilePicture ? (
-              <img
-                src={patient.profilePicture}
-                alt={patient.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="font-heading font-extrabold text-[#3fb6ad] text-base">
-                {getInitials(patient.name)}
-              </span>
-            )}
-          </div>
+    <div className="mb-6">
+      {/* Clean Breadcrumb Link directly above PatientBanner */}
+      <div className="mb-2.5">
+        <button
+          type="button"
+          onClick={onBackToProfiles || (() => onSelectPatient && onSelectPatient(null))}
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors font-heading group cursor-pointer"
+          title="Return to Select Profile screen"
+        >
+          <span className="group-hover:-translate-x-0.5 transition-transform">&larr;</span>
+          <span>Back to All Profiles</span>
+        </button>
+      </div>
 
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] uppercase font-bold tracking-wider text-[#3fb6ad] font-heading">
-                Active Patient Profile
-              </span>
-              <button
-                type="button"
-                onClick={onBackToProfiles || (() => onSelectPatient && onSelectPatient(null))}
-                className="inline-flex items-center gap-1 text-[11px] bg-white/10 hover:bg-white/20 px-2.5 py-0.5 rounded-full border border-white/20 text-slate-200 transition-colors font-heading active:scale-95 cursor-pointer"
-                title="Return to Select Profile screen"
-              >
-                <span>&larr; All Profiles</span>
-              </button>
-              {userRole === 'family' && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onEditPatient) onEditPatient(patient);
-                    else setIsEditPatientOpen(true);
-                  }}
-                  className="inline-flex items-center gap-1 text-[11px] bg-[#3fb6ad]/20 hover:bg-[#3fb6ad]/30 text-white px-2.5 py-0.5 rounded-full border border-[#3fb6ad]/40 transition-colors font-heading active:scale-95 cursor-pointer"
-                  title="Edit Patient Details"
-                >
-                  <Pencil className="w-3 h-3 text-[#3fb6ad]" />
-                  <span>Edit Patient</span>
-                </button>
+      {/* Main Patient Banner Card */}
+      <div className="bg-[#101820] text-white rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.12)] border border-slate-700/60">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {/* Patient Profile Details */}
+          <div className="flex items-start gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
+              {patient.profilePicture ? (
+                <img
+                  src={patient.profilePicture}
+                  alt={patient.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="font-heading font-extrabold text-[#3fb6ad] text-base">
+                  {getInitials(patient.name)}
+                </span>
               )}
             </div>
 
-            <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight mt-0.5 font-heading flex items-center gap-2 flex-wrap">
-              <span>{patient.name}</span>
-              <span className="text-slate-400 font-normal text-sm">({patient.age} yrs)</span>
-              {patient.createdByRelation && (
-                <span className="text-[10px] font-bold text-teal-300 bg-white/10 px-2 py-0.5 rounded-full border border-teal-400/30 font-heading">
-                  Relation: {patient.createdByRelation}
-                </span>
-              )}
-            </h1>
+            <div>
+              <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight font-heading flex items-center gap-2 flex-wrap">
+                <span>{patient.name}</span>
+                <span className="text-slate-400 font-normal text-sm">({patient.age} yrs)</span>
+                {patient.createdByRelation && (
+                  <span className="text-[10px] font-bold text-teal-300 bg-white/10 px-2 py-0.5 rounded-full border border-teal-400/30 font-heading">
+                    Relation: {patient.createdByRelation}
+                  </span>
+                )}
+              </h1>
 
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5 text-xs text-slate-300 font-medium">
-              <span>
-                Condition: <span className="text-white font-semibold">{patient.condition || 'Home Care Assistance'}</span>
-              </span>
-              {patient.emergencyContact && (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-slate-300 font-medium">
                 <span>
-                  Emergency: <span className="text-emerald-300 font-semibold">{patient.emergencyContact}</span>
+                  Condition: <span className="text-white font-semibold">{patient.condition || 'Home Care Assistance'}</span>
                 </span>
-              )}
-              {patient.address && (
-                <span className="truncate max-w-[260px] text-slate-300">
-                  Location: <span className="text-slate-200">{patient.address}</span>
-                </span>
-              )}
-            </div>
-
-            {patient.allergies && (
-              <div className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-rose-500/20 border border-rose-400/40 text-rose-200 text-[11px] font-semibold">
-                <AlertCircle className="w-3.5 h-3.5 text-rose-300 shrink-0" />
-                <span>Allergies: {patient.allergies}</span>
+                {patient.emergencyContact && (
+                  <span>
+                    Emergency: <span className="text-emerald-300 font-semibold">{patient.emergencyContact}</span>
+                  </span>
+                )}
+                {patient.address && (
+                  <span className="truncate max-w-[260px] text-slate-300">
+                    Location: <span className="text-slate-200">{patient.address}</span>
+                  </span>
+                )}
               </div>
-            )}
+
+              {patient.allergies && (
+                <div className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-rose-500/20 border border-rose-400/40 text-rose-200 text-[11px] font-semibold">
+                  <AlertCircle className="w-3.5 h-3.5 text-rose-300 shrink-0" />
+                  <span>Allergies: {patient.allergies}</span>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* 1-Click Copyable 6-Digit Care Code & Action Buttons */}
-        <div className="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto items-stretch sm:items-center">
-          <button
-            type="button"
-            onClick={handleCopyCode}
-            className={`${
-              userRole === 'family' ? 'col-span-2 sm:col-span-1' : 'col-span-1'
-            } flex items-center justify-between px-3 py-2 bg-white/5 border border-white/15 rounded-full hover:bg-white/10 transition-all min-h-[44px] text-left group active:scale-[0.98]`}
-            title="Click to copy Care Code for nurse or family sharing"
-          >
-            <div className="flex flex-col min-w-0 pr-1">
-              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider font-heading leading-none">
-                Care Code
-              </span>
-              <span className="text-sm sm:text-base font-mono font-extrabold tracking-widest text-[#3fb6ad] leading-tight">
-                {patient.careCode}
-              </span>
-            </div>
-
-            <div
-              className={`p-1.5 rounded-full shrink-0 transition-all ${
-                copied
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-white/10 text-white group-hover:bg-white/20'
-              }`}
-            >
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-            </div>
-          </button>
-
-          {/* Family-only Care Team Management Button */}
-          {userRole === 'family' && (
+          {/* 1-Click Copyable 6-Digit Care Code & Action Buttons */}
+          <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto items-stretch sm:items-center">
             <button
               type="button"
-              onClick={handleOpenCareTeam}
-              className="col-span-1 flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-full bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 font-heading min-h-[44px] active:scale-[0.98] relative"
-              title="Manage linked caregivers & security"
+              onClick={handleCopyCode}
+              className="flex items-center justify-between px-3 py-2 bg-white/5 border border-white/15 rounded-full hover:bg-white/10 transition-all min-h-[44px] text-left group active:scale-[0.98]"
+              title="Click to copy Care Code for nurse or family sharing"
             >
-              <Users className="w-4 h-4 text-[#3fb6ad] shrink-0" />
-              <span>Care Team</span>
-              {pendingMembers.length > 0 && (
-                <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-slate-950 font-heading animate-pulse">
-                  {pendingMembers.length} Pending
+              <div className="flex flex-col min-w-0 pr-1">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider font-heading leading-none">
+                  Care Code
                 </span>
-              )}
-            </button>
-          )}
+                <span className="text-sm sm:text-base font-mono font-extrabold tracking-widest text-[#3fb6ad] leading-tight">
+                  {patient.careCode}
+                </span>
+              </div>
 
-          {/* Add / Enter Code Pill Button */}
-          <button
-            onClick={onOpenPairModal}
-            className={`${
-              userRole === 'family' ? 'col-span-1' : 'col-span-1'
-            } flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-full bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] transition-all shadow-[0_4px_14px_rgba(63,182,173,0.25)] font-heading min-h-[44px] active:scale-[0.98]`}
-            title="Link another patient using a 6-digit Care Code"
-          >
-            <PlusCircle className="w-4 h-4 shrink-0" />
-            <span className="truncate">{userRole === 'caretaker' ? 'Enter Code' : 'Add Patient'}</span>
-          </button>
+              <div
+                className={`p-1.5 rounded-full shrink-0 transition-all ${
+                  copied
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-white/10 text-white group-hover:bg-white/20'
+                }`}
+              >
+                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              </div>
+            </button>
+
+            {/* Edit Profile Button (Family only) */}
+            {userRole === 'family' && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onEditPatient) onEditPatient(patient);
+                  else setIsEditPatientOpen(true);
+                }}
+                className="flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-full bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 font-heading min-h-[44px] active:scale-[0.98]"
+                title="Edit Patient Details"
+              >
+                <Pencil className="w-3.5 h-3.5 text-[#3fb6ad] shrink-0" />
+                <span>Edit Profile</span>
+              </button>
+            )}
+
+            {/* Family-only Care Team Management Button */}
+            {userRole === 'family' && (
+              <button
+                type="button"
+                onClick={handleOpenCareTeam}
+                className="flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-full bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 font-heading min-h-[44px] active:scale-[0.98] relative"
+                title="Manage linked caregivers & security"
+              >
+                <Users className="w-4 h-4 text-[#3fb6ad] shrink-0" />
+                <span>Care Team</span>
+                {pendingMembers.length > 0 && (
+                  <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-slate-950 font-heading animate-pulse">
+                    {pendingMembers.length}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {/* Add / Enter Code Pill Button */}
+            <button
+              onClick={onOpenPairModal}
+              className="flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-full bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] transition-all shadow-[0_4px_14px_rgba(63,182,173,0.25)] font-heading min-h-[44px] active:scale-[0.98]"
+              title="Link another patient using a 6-digit Care Code"
+            >
+              <PlusCircle className="w-4 h-4 shrink-0" />
+              <span className="truncate">{userRole === 'caretaker' ? 'Enter Code' : 'Add Patient'}</span>
+            </button>
+          </div>
         </div>
       </div>
 

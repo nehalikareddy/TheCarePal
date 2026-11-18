@@ -11,7 +11,6 @@ import {
   AlertTriangle,
   Phone,
   MapPin,
-  Pencil,
 } from 'lucide-react';
 
 function getInitials(name = '') {
@@ -69,7 +68,7 @@ export default function SelectProfileView({
             className="inline-flex items-center gap-1.5 text-xs font-bold text-[#04302c] hover:underline font-heading"
           >
             <PlusCircle className="w-3.5 h-3.5" />
-            <span>{user?.role === 'family' ? '+ Add Patient' : '+ Link via Care Code'}</span>
+            <span>{user?.role === 'family' ? 'Add Patient' : 'Link via Care Code'}</span>
           </button>
         </div>
 
@@ -94,25 +93,9 @@ export default function SelectProfileView({
                       {getInitials(pat.name)}
                     </div>
                   )}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-mono font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded-lg border border-slate-200">
-                      Code: {pat.careCode}
-                    </span>
-                    {user?.role === 'family' && onEditPatient && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditPatient(pat);
-                        }}
-                        className="p-1 rounded-lg bg-slate-100 hover:bg-[#3fb6ad]/20 text-slate-500 hover:text-[#04302c] border border-slate-200 transition"
-                        title="Edit Patient Details"
-                        aria-label="Edit Patient Details"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
+                  <span className="text-[11px] font-mono font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded-lg border border-slate-200">
+                    Code: {pat.careCode}
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
@@ -215,7 +198,7 @@ export default function SelectProfileView({
               <PlusCircle className="w-6 h-6" />
             </div>
             <h3 className="text-sm font-bold text-slate-800 font-heading group-hover:text-[#04302c]">
-              {user?.role === 'family' ? '+ Add New Patient' : '+ Link Patient via Care Code'}
+              {user?.role === 'family' ? 'Add New Patient' : 'Link Patient via Care Code'}
             </h3>
             <p className="text-xs text-slate-500 mt-1 max-w-[200px]">
               {user?.role === 'family'

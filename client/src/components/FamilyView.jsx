@@ -245,7 +245,7 @@ export default function FamilyView({ patient, user }) {
           className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-bold bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] transition-all shadow-[0_4px_14px_rgba(63,182,173,0.3)] hover:shadow-[0_8px_20px_rgba(63,182,173,0.45)] font-heading active:scale-[0.98] w-full sm:w-auto min-h-[46px]"
         >
           <Plus className="w-4 h-4 shrink-0" />
-          <span>+ Add Medicine</span>
+          <span>Add Medicine</span>
         </button>
       </div>
 
