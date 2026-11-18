@@ -113,23 +113,26 @@ router.get('/:id', auth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
   try {
     const callerId = String(req.user?.id || req.user?._id || req.user?.userId || req.user?.user?.id || '');
-    const { name, age, condition } = req.body;
+    const { name, age, condition, profilePicture, emergencyContact, allergies, address } = req.body;
     if (!name || !age) {
       return res.status(400).json({ message: 'Patient name and age are required' });
     }
 
     const caller = await User.findById(callerId);
-    const isCaretaker = caller?.role === 'caretaker';
 
     const careCode = await generateUniqueCareCode();
     const patient = await Patient.create({
-      name,
+      name: name.trim(),
       age: Number(age),
-      condition: condition || 'Home Care',
+      condition: condition?.trim() || 'Home Care',
+      profilePicture: profilePicture || '',
+      emergencyContact: (emergencyContact || '').trim(),
+      allergies: (allergies || '').trim(),
+      address: (address || '').trim(),
       careCode,
       createdBy: callerId,
-      family: isCaretaker ? [] : [callerId],
-      caretakers: isCaretaker ? [callerId] : [],
+      family: caller?.role === 'family' ? [callerId] : [],
+      caretakers: caller?.role === 'caretaker' ? [callerId] : [],
       pendingMembers: []
     });
 
@@ -145,6 +148,44 @@ router.post('/', auth, async (req, res) => {
   } catch (err) {
     console.error('Create patient error:', err);
     res.status(500).json({ message: 'Failed to create patient', error: err.message });
+  }
+});
+
+// PUT /api/patients/:id - Update patient profile details (family only)
+router.put('/:id', auth, async (req, res) => {
+  try {
+    const patientId = req.params.id;
+    const authResult = await verifyFamilyMemberForPatient(req, patientId);
+    if (!authResult) {
+      return res.status(403).json({ message: 'Only authorized family members can update patient profile details' });
+    }
+    const { patient } = authResult;
+
+    const { name, age, condition, profilePicture, emergencyContact, allergies, address } = req.body;
+
+    if (name !== undefined) patient.name = name.trim();
+    if (age !== undefined && age !== null && age !== '') patient.age = Number(age);
+    if (condition !== undefined) patient.condition = condition.trim();
+    if (profilePicture !== undefined) patient.profilePicture = profilePicture;
+    if (emergencyContact !== undefined) patient.emergencyContact = (emergencyContact || '').trim();
+    if (allergies !== undefined) patient.allergies = (allergies || '').trim();
+    if (address !== undefined) patient.address = (address || '').trim();
+
+    await patient.save();
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`patient_${patient._id}`).emit('patientUpdated', patient);
+    }
+
+    res.json({
+      success: true,
+      message: 'Patient profile updated successfully',
+      patient
+    });
+  } catch (err) {
+    console.error('Update patient error:', err);
+    res.status(500).json({ message: 'Failed to update patient profile', error: err.message });
   }
 });
 

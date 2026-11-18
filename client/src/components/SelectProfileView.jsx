@@ -8,6 +8,9 @@ import {
   UserCheck,
   User,
   Sparkles,
+  AlertTriangle,
+  Phone,
+  MapPin,
 } from 'lucide-react';
 
 function getInitials(name = '') {
@@ -95,9 +98,17 @@ export default function SelectProfileView({
             >
               <div>
                 <div className="flex items-start justify-between gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-[#3fb6ad]/15 text-[#04302c] flex items-center justify-center font-bold text-base font-heading border border-[#3fb6ad]/30 group-hover:scale-105 transition-transform">
-                    {getInitials(pat.name)}
-                  </div>
+                  {pat.profilePicture ? (
+                    <img
+                      src={pat.profilePicture}
+                      alt={pat.name}
+                      className="w-12 h-12 rounded-2xl object-cover border border-[#3fb6ad]/30 shadow-xs group-hover:scale-105 transition-transform"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-2xl bg-[#3fb6ad]/15 text-[#04302c] flex items-center justify-center font-bold text-base font-heading border border-[#3fb6ad]/30 group-hover:scale-105 transition-transform">
+                      {getInitials(pat.name)}
+                    </div>
+                  )}
                   <span className="text-[11px] font-mono font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded-lg border border-slate-200">
                     Code: {pat.careCode}
                   </span>
@@ -110,14 +121,31 @@ export default function SelectProfileView({
                   {pat.age} years old
                 </p>
 
-                <div className="mt-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block font-heading">
-                    Condition
-                  </span>
-                  <span className="text-slate-700 font-semibold truncate block mt-0.5">
-                    {pat.condition || 'General Home Care'}
-                  </span>
+                <div className="mt-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs space-y-1.5">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block font-heading">
+                      Condition
+                    </span>
+                    <span className="text-slate-700 font-semibold truncate block mt-0.5">
+                      {pat.condition || 'General Home Care'}
+                    </span>
+                  </div>
+
+                  {pat.emergencyContact && (
+                    <div className="pt-1.5 border-t border-slate-200/60 flex items-center gap-1.5 text-[11px]">
+                      <Phone className="w-3 h-3 text-emerald-600 shrink-0" />
+                      <span className="text-slate-500 font-medium font-heading">Emergency:</span>
+                      <span className="text-emerald-700 font-semibold truncate">{pat.emergencyContact}</span>
+                    </div>
+                  )}
                 </div>
+
+                {pat.allergies && (
+                  <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-semibold max-w-full">
+                    <AlertTriangle className="w-3 h-3 text-rose-600 shrink-0" />
+                    <span className="truncate">Allergies: {pat.allergies}</span>
+                  </div>
+                )}
               </div>
 
               <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs font-bold font-heading text-[#04302c]">

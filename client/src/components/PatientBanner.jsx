@@ -174,8 +174,18 @@ export default function PatientBanner({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         {/* Patient Profile Details */}
         <div className="flex items-start gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 shadow-inner">
-            <HeartHandshake className="w-6 h-6 text-[#3fb6ad]" />
+          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
+            {patient.profilePicture ? (
+              <img
+                src={patient.profilePicture}
+                alt={patient.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="font-heading font-extrabold text-[#3fb6ad] text-base">
+                {getInitials(patient.name)}
+              </span>
+            )}
           </div>
 
           <div>
@@ -196,9 +206,29 @@ export default function PatientBanner({
             <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight mt-0.5 font-heading">
               {patient.name} <span className="text-slate-400 font-normal">({patient.age} yrs)</span>
             </h1>
-            <p className="text-xs text-slate-300 mt-0.5 font-medium">
-              Condition: <span className="text-white font-semibold">{patient.condition || 'Home Care Assistance'}</span>
-            </p>
+
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5 text-xs text-slate-300 font-medium">
+              <span>
+                Condition: <span className="text-white font-semibold">{patient.condition || 'Home Care Assistance'}</span>
+              </span>
+              {patient.emergencyContact && (
+                <span>
+                  Emergency: <span className="text-emerald-300 font-semibold">{patient.emergencyContact}</span>
+                </span>
+              )}
+              {patient.address && (
+                <span className="truncate max-w-[260px] text-slate-300">
+                  Location: <span className="text-slate-200">{patient.address}</span>
+                </span>
+              )}
+            </div>
+
+            {patient.allergies && (
+              <div className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-rose-500/20 border border-rose-400/40 text-rose-200 text-[11px] font-semibold">
+                <AlertCircle className="w-3.5 h-3.5 text-rose-300 shrink-0" />
+                <span>Allergies: {patient.allergies}</span>
+              </div>
+            )}
           </div>
         </div>
 

@@ -805,8 +805,26 @@ export default function App() {
       {/* User Profile Modal */}
       <ProfileModal
         isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
+        onClose={() => {
+          setIsProfileModalOpen(false);
+          setIsFirstTimeProfile(false);
+        }}
         user={user}
+        patients={patients}
+        activePatient={currentPatient}
+        onPatientSaved={(savedPatient) => {
+          setPatients((prev) => {
+            const exists = prev.some((p) => String(p._id) === String(savedPatient._id));
+            if (exists) {
+              return prev.map((p) => (String(p._id) === String(savedPatient._id) ? savedPatient : p));
+            }
+            return [...prev, savedPatient];
+          });
+          if (currentPatient && String(currentPatient._id) === String(savedPatient._id)) {
+            setCurrentPatient(savedPatient);
+          }
+          setRefreshTrigger((prev) => prev + 1);
+        }}
         onUpdateUser={(updatedUser) => {
           setUser(updatedUser);
           localStorage.setItem('thecarepal_user', JSON.stringify(updatedUser));
