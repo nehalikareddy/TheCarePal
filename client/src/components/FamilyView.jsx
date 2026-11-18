@@ -749,13 +749,15 @@ export default function FamilyView({ patient, user }) {
                             setLightboxRx({
                               url: med.prescriptionUrl,
                               name: med.name,
-                              strength: med.strength
+                              strength: med.strength,
+                              dose: med.dose
                             })
                           }
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-[#3fb6ad]/15 text-[#04302c] hover:bg-[#3fb6ad]/25 transition-all min-h-[38px] font-heading border border-[#3fb6ad]/30"
+                          title="View attached doctor's prescription"
                         >
-                          <Eye className="w-3.5 h-3.5 text-[#3fb6ad]" />
-                          <span>View Rx</span>
+                          <FileText className="w-3.5 h-3.5 text-[#3fb6ad]" />
+                          <span>View Prescription</span>
                         </button>
                       )}
                     </div>

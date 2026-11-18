@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Sun,
   Sunset,
@@ -11,6 +11,8 @@ import {
   Lock,
   FileText,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import api from '../services/api';
@@ -24,9 +26,22 @@ export default function CaretakerView({ patient, user }) {
 
   // Skip modal & Rx Lightbox state
   const [selectedDoseForSkip, setSelectedDoseForSkip] = useState(null);
-  const [viewingRxDose, setViewingRxDose] = useState(null);
+  const [rxModalList, setRxModalList] = useState([]);
+  const [currentRxIndex, setCurrentRxIndex] = useState(0);
   const [submittingAction, setSubmittingAction] = useState(false);
   const [actionSuccessMessage, setActionSuccessMessage] = useState('');
+
+  const openRxModal = (list, startIndex = 0) => {
+    setRxModalList(list || []);
+    setCurrentRxIndex(startIndex >= 0 && startIndex < (list?.length || 0) ? startIndex : 0);
+  };
+
+  const closeRxModal = () => {
+    setRxModalList([]);
+    setCurrentRxIndex(0);
+  };
+
+  const viewingRxDose = rxModalList[currentRxIndex] || null;
 
   const fetchTodaySchedule = async () => {
     if (!patient) {
@@ -126,6 +141,18 @@ export default function CaretakerView({ patient, user }) {
   const afternoonDoses = doses.filter((d) => (d.slot || d.bucket) === 'Afternoon');
   const nightDoses = doses.filter((d) => (d.slot || d.bucket) === 'Night');
 
+  // Collect all unique medicines in today's schedule that have an attached prescriptionUrl
+  const rxMedicines = useMemo(() => {
+    const map = new Map();
+    doses.forEach((d) => {
+      const key = d.medicineId || d.name;
+      if (d.prescriptionUrl && !map.has(key)) {
+        map.set(key, d);
+      }
+    });
+    return Array.from(map.values());
+  }, [doses]);
+
   const summary = scheduleData?.summary || { total: 0, given: 0, skipped: 0, pending: 0 };
 
   const renderSlotSection = (title, slotDoses, icon, badgeColor) => {
@@ -195,16 +222,21 @@ export default function CaretakerView({ patient, user }) {
                           {dose.food === 'before' ? 'Before Food' : dose.food === 'after' ? 'After Food' : 'With / without food'}
                         </span>
 
-                        {/* Prescription Verification View Rx Button */}
+                        {/* Prescription Verification View Prescription Button */}
                         {dose.prescriptionUrl && (
                           <button
                             type="button"
-                            onClick={() => setViewingRxDose(dose)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#3fb6ad]/15 text-[#04302c] hover:bg-[#3fb6ad]/25 transition-all min-h-[38px] border border-[#3fb6ad]/30 font-heading"
-                            title="Verify doctor prescription"
+                            onClick={() => {
+                              const idx = rxMedicines.findIndex(
+                                (m) => (m.medicineId || m.name) === (dose.medicineId || dose.name)
+                              );
+                              openRxModal(rxMedicines.length > 0 ? rxMedicines : [dose], idx >= 0 ? idx : 0);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-[#3fb6ad]/15 text-[#04302c] hover:bg-[#3fb6ad]/25 transition-all min-h-[38px] border border-[#3fb6ad]/30 font-heading"
+                            title="Verify attached doctor's prescription"
                           >
                             <FileText className="w-3.5 h-3.5 text-[#3fb6ad]" />
-                            <span>View Rx</span>
+                            <span>View Prescription</span>
                           </button>
                         )}
                       </div>
@@ -316,6 +348,44 @@ export default function CaretakerView({ patient, user }) {
         </div>
       </div>
 
+      {/* Top Doctor Prescriptions Banner */}
+      {rxMedicines.length > 0 && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#101820] text-white border border-[#3fb6ad]/40 shadow-[0_4px_16px_rgba(16,24,32,0.12)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-[#3fb6ad]/20 border border-[#3fb6ad]/30 flex items-center justify-center shrink-0 shadow-inner">
+              <FileText className="w-6 h-6 text-[#3fb6ad]" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#3fb6ad] font-heading">
+                  Official Medical Orders
+                </span>
+                <span className="text-[10px] font-bold bg-[#3fb6ad]/20 text-[#3fb6ad] px-2 py-0.5 rounded-full border border-[#3fb6ad]/40 font-heading">
+                  Verified Rx
+                </span>
+              </div>
+              <h3 className="text-sm sm:text-base font-bold text-white font-heading mt-0.5">
+                Doctor Prescriptions Attached ({rxMedicines.length})
+              </h3>
+              <p className="text-xs text-slate-300 mt-0.5">
+                {rxMedicines.length === 1
+                  ? `Doctor prescription image attached for ${rxMedicines[0].name}.`
+                  : `Original prescription images attached for ${rxMedicines.map((m) => m.name).join(', ')}.`}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => openRxModal(rxMedicines, 0)}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] active:scale-[0.98] transition-all min-h-[44px] font-heading shadow-[0_4px_14px_rgba(63,182,173,0.3)] shrink-0"
+          >
+            <FileText className="w-4 h-4 shrink-0" />
+            <span>{rxMedicines.length > 1 ? 'View Prescriptions' : 'View Prescription'}</span>
+          </button>
+        </div>
+      )}
+
       {/* Schedule Grouped Sections */}
       <div>
         {renderSlotSection(
@@ -359,22 +429,30 @@ export default function CaretakerView({ patient, user }) {
         loading={submittingAction}
       />
 
-      {/* Nurse Verification Lightbox Modal */}
+      {/* Nurse Verification Lightbox Modal with Multi-Prescription Navigation */}
       {viewingRxDose && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in">
           <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
-            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between gap-3">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#3fb6ad] font-heading">
-                  Doctor's Order Verification
-                </span>
-                <h3 className="text-base font-bold text-[#101820] font-heading">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#3fb6ad] font-heading">
+                    Doctor's Prescription Order
+                  </span>
+                  {rxModalList.length > 1 && (
+                    <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-heading font-mono">
+                      {currentRxIndex + 1} of {rxModalList.length}
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-base font-bold text-[#101820] font-heading mt-0.5">
                   {viewingRxDose.name} ({viewingRxDose.strength})
                 </h3>
               </div>
               <button
-                onClick={() => setViewingRxDose(null)}
-                className="p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 min-w-[38px] min-h-[38px] flex items-center justify-center"
+                onClick={closeRxModal}
+                className="p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 min-w-[38px] min-h-[38px] flex items-center justify-center shrink-0"
+                title="Close"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -383,8 +461,12 @@ export default function CaretakerView({ patient, user }) {
             <div className="px-5 py-3 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center gap-3 text-xs">
               <div><strong className="text-slate-500">Dose:</strong> <span className="font-semibold text-slate-800">{viewingRxDose.dose}</span></div>
               <div>•</div>
-              <div><strong className="text-slate-500">Scheduled:</strong> <span className="font-semibold text-slate-800">{viewingRxDose.scheduledTime}</span></div>
-              <div>•</div>
+              {viewingRxDose.scheduledTime && (
+                <>
+                  <div><strong className="text-slate-500">Scheduled:</strong> <span className="font-semibold text-slate-800">{viewingRxDose.scheduledTime}</span></div>
+                  <div>•</div>
+                </>
+              )}
               <div><strong className="text-slate-500">Timing:</strong> <span className="font-semibold text-slate-800">{viewingRxDose.food === 'before' ? 'Before food' : viewingRxDose.food === 'after' ? 'After food' : 'Anytime'}</span></div>
             </div>
 
@@ -396,22 +478,48 @@ export default function CaretakerView({ patient, user }) {
               />
             </div>
 
-            <div className="p-3.5 sm:p-4 bg-white border-t border-slate-100 flex items-center justify-between">
+            <div className="p-3.5 sm:p-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               <a
                 href={viewingRxDose.prescriptionUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs font-bold text-slate-600 hover:text-[#04302c] underline min-h-[38px] flex items-center"
+                className="text-xs font-bold text-slate-600 hover:text-[#04302c] underline min-h-[38px] flex items-center justify-center sm:justify-start"
               >
-                Open Original Image ↗
+                Open Full Image ↗
               </a>
-              <button
-                type="button"
-                onClick={() => setViewingRxDose(null)}
-                className="px-5 py-2 rounded-full text-xs font-bold bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] font-heading min-h-[38px]"
-              >
-                Done Verifying
-              </button>
+
+              <div className="flex items-center justify-between sm:justify-end gap-2">
+                {rxModalList.length > 1 && (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentRxIndex((prev) => Math.max(0, prev - 1))}
+                      disabled={currentRxIndex === 0}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed text-slate-700 min-h-[38px] font-heading transition-all"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      <span>Prev</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentRxIndex((prev) => Math.min(rxModalList.length - 1, prev + 1))}
+                      disabled={currentRxIndex === rxModalList.length - 1}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed text-slate-700 min-h-[38px] font-heading transition-all"
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={closeRxModal}
+                  className="px-5 py-2 rounded-full text-xs font-bold bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] font-heading min-h-[38px] transition-all"
+                >
+                  Done Verifying
+                </button>
+              </div>
             </div>
           </div>
         </div>
