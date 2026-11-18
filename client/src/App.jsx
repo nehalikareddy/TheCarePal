@@ -13,7 +13,7 @@ import {
   sendBrowserNotification,
   playNotificationChime,
 } from './utils/notifications';
-import { Stethoscope, Users, HeartHandshake, PlusCircle } from 'lucide-react';
+import { HeartHandshake, PlusCircle } from 'lucide-react';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -23,9 +23,6 @@ export default function App() {
   const [patients, setPatients] = useState([]);
   const [currentPatient, setCurrentPatient] = useState(null);
   const [isPairModalOpen, setIsPairModalOpen] = useState(false);
-  
-  // Active view: defaults to user's registered role ('caretaker' | 'family')
-  const [activeRoleView, setActiveRoleView] = useState('family');
 
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
@@ -49,7 +46,6 @@ export default function App() {
         const res = await api.get('/auth/me');
         const userData = res.data.user;
         setUser(userData);
-        setActiveRoleView(userData.role || 'family');
 
         // Fetch patients
         const patRes = await api.get('/patients');
@@ -148,7 +144,6 @@ export default function App() {
   const handleLoginSuccess = async (userData, newToken) => {
     setUser(userData);
     setToken(newToken);
-    setActiveRoleView(userData.role || 'family');
 
     try {
       const patRes = await api.get('/patients');
@@ -239,43 +234,8 @@ export default function App() {
               userRole={user.role}
             />
 
-            {/* Thumb-Friendly Portal Preview Switcher */}
-            <div className="mb-5 bg-white border border-[#e6ecf1] rounded-2xl p-3 sm:px-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-              <div className="flex items-center gap-2 text-xs text-slate-700 font-medium">
-                <span className="w-2 h-2 rounded-full bg-[#3fb6ad] animate-pulse shrink-0" />
-                <span className="font-bold text-[#101820] font-heading">Portal Preview:</span>
-                <span className="text-slate-500 text-[11px] sm:text-xs">Switch view to preview experience:</span>
-              </div>
-
-              <div className="grid grid-cols-2 sm:flex w-full sm:w-auto gap-1.5 p-1 bg-slate-100 rounded-full text-xs font-bold font-heading border border-[#e6ecf1] shadow-2xs">
-                <button
-                  onClick={() => setActiveRoleView('caretaker')}
-                  className={`flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 min-h-[44px] sm:min-h-0 rounded-full transition-all active:scale-[0.98] ${
-                    activeRoleView === 'caretaker'
-                      ? 'bg-[#101820] text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Stethoscope className="w-4 h-4 text-[#3fb6ad]" />
-                  <span>Caretaker View</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveRoleView('family')}
-                  className={`flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 min-h-[44px] sm:min-h-0 rounded-full transition-all active:scale-[0.98] ${
-                    activeRoleView === 'family'
-                      ? 'bg-[#101820] text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Users className="w-4 h-4 text-[#3fb6ad]" />
-                  <span>Family View</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Dynamic View: Caretaker Checklist vs Family Overview */}
-            {activeRoleView === 'caretaker' ? (
+            {/* Dynamic View: Caretaker Checklist vs Family Overview based on genuine user.role */}
+            {user.role === 'caretaker' ? (
               <CaretakerView
                 key={`caretaker-${currentPatient?._id}-${refreshTrigger}`}
                 patient={currentPatient}

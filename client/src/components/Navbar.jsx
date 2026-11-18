@@ -50,11 +50,11 @@ export default function Navbar({ user, onLogout, isSocketConnected, onRefresh })
             <button
               onClick={handleTestReminder}
               className="flex items-center justify-center min-w-[44px] min-h-[44px] px-2 sm:px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#3fb6ad]/15 text-[#04302c] border border-[#3fb6ad]/50 hover:bg-[#3fb6ad] hover:text-[#04302c] hover:shadow-[0_4px_14px_rgba(63,182,173,0.3)] transition-all active:scale-95 font-heading"
-              title="Test Browser Push Notification & Audio Chime"
-              aria-label="Test Notification"
+              title="Medication Reminder Alerts"
+              aria-label="Medication Reminder Alerts"
             >
               <Bell className="w-4 h-4 text-[#04302c]" />
-              <span className="hidden md:inline ml-1.5">Reminder</span>
+              <span className="hidden md:inline ml-1.5">Alerts</span>
             </button>
 
             {/* User Pill & Role Badge */}
