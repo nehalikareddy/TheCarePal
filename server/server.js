@@ -123,7 +123,9 @@ mongoose
   .connect(process.env.MONGODB_URI)
   .then(async () => {
     console.log('MongoDB Atlas connected');
-    await ensureDemoSeed();
+    if (process.env.ENABLE_DEMO_SEED === 'true') {
+      await ensureDemoSeed();
+    }
     server.listen(PORT, () => {
       console.log(`TheCarePal MedSync API running on port ${PORT}`);
     });
