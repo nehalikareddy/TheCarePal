@@ -26,7 +26,10 @@ export default function CaretakerView({ patient, user }) {
   const [actionSuccessMessage, setActionSuccessMessage] = useState('');
 
   const fetchTodaySchedule = async () => {
-    if (!patient) return;
+    if (!patient) {
+      setLoading(false);
+      return;
+    }
     try {
       const res = await api.get(`/schedule/today/${patient._id}`);
       setScheduleData(res.data);

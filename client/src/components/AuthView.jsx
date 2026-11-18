@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import BrandLogo from './BrandLogo';
-import { Users, Stethoscope, ArrowRight, Lock, Mail, User } from 'lucide-react';
+import { Users, Stethoscope, ArrowRight, Lock, Mail, User, ShieldCheck } from 'lucide-react';
 import api from '../services/api';
 
 export default function AuthView({ onLoginSuccess }) {
@@ -22,8 +22,8 @@ export default function AuthView({ onLoginSuccess }) {
     try {
       const endpoint = isLoginMode ? '/auth/login' : '/auth/register';
       const payload = isLoginMode
-        ? { email, password }
-        : { name, email, password, role };
+        ? { email: email.trim().toLowerCase(), password }
+        : { name: name.trim(), email: email.trim().toLowerCase(), password, role };
 
       const res = await api.post(endpoint, payload);
       localStorage.setItem('carepal_token', res.data.token);
@@ -31,44 +31,6 @@ export default function AuthView({ onLoginSuccess }) {
       onLoginSuccess(res.data.user, res.data.token);
     } catch (err) {
       setError(err.response?.data?.message || 'Authentication failed. Please verify credentials.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 1-Click Demo Login Handler for Rohan Verma (Family)
-  const handleDemoFamily = async () => {
-    setError('');
-    setLoading(true);
-    try {
-      const res = await api.post('/auth/login', {
-        email: 'rohan.family@demo.com',
-        password: 'Demo@123',
-      });
-      localStorage.setItem('carepal_token', res.data.token);
-      localStorage.setItem('thecarepal_token', res.data.token);
-      onLoginSuccess(res.data.user, res.data.token);
-    } catch (err) {
-      setError('Demo login failed. Make sure backend server is running.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 1-Click Demo Login Handler for Nurse Kavita (Caretaker)
-  const handleDemoCaretaker = async () => {
-    setError('');
-    setLoading(true);
-    try {
-      const res = await api.post('/auth/login', {
-        email: 'kavita.nurse@demo.com',
-        password: 'Demo@123',
-      });
-      localStorage.setItem('carepal_token', res.data.token);
-      localStorage.setItem('thecarepal_token', res.data.token);
-      onLoginSuccess(res.data.user, res.data.token);
-    } catch (err) {
-      setError('Demo login failed. Make sure backend server is running.');
     } finally {
       setLoading(false);
     }
@@ -128,14 +90,14 @@ export default function AuthView({ onLoginSuccess }) {
             </h3>
             <p className="text-xs text-slate-500">
               {isLoginMode
-                ? 'Enter your credentials to access the shared care dashboard.'
+                ? 'Enter your credentials to access your shared patient care dashboard.'
                 : 'Sign up to coordinate medications with patient caregivers.'}
             </p>
           </div>
 
           {/* Error Banner */}
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+            <div className="mb-4 p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
               {error}
             </div>
           )}
@@ -204,7 +166,10 @@ export default function AuthView({ onLoginSuccess }) {
           <div className="mt-4 text-center">
             <button
               type="button"
-              onClick={() => setIsLoginMode(!isLoginMode)}
+              onClick={() => {
+                setIsLoginMode(!isLoginMode);
+                setError('');
+              }}
               className="text-xs font-bold text-[#0074ff] hover:text-[#005fd1] transition-colors font-heading"
             >
               {isLoginMode
@@ -213,62 +178,18 @@ export default function AuthView({ onLoginSuccess }) {
             </button>
           </div>
 
-          {/* Evaluator 1-Click Demo Logins Section */}
-          <div className="mt-6 pt-6 border-t border-slate-200">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-2 h-2 rounded-full bg-[#3fb6ad]" />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-heading">
-                1-Click Evaluator Demo Accounts
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {/* Demo Family Button (CarePal Teal Pill) */}
-              <button
-                type="button"
-                onClick={handleDemoFamily}
-                disabled={loading}
-                className="flex items-center gap-2.5 p-3 rounded-2xl border border-[#3fb6ad]/40 bg-[#3fb6ad]/10 hover:bg-[#3fb6ad]/20 transition-all text-left group active:scale-[0.98]"
-              >
-                <div className="w-8 h-8 rounded-full bg-[#3fb6ad] text-[#04302c] flex items-center justify-center shrink-0 shadow-xs">
-                  <Users className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-bold text-[#04302c] group-hover:text-black truncate font-heading">
-                    Demo: Family
-                  </div>
-                  <div className="text-[11px] text-slate-500 truncate">
-                    Rohan Verma
-                  </div>
-                </div>
-              </button>
-
-              {/* Demo Caretaker Button (CarePal Obsidian Dark Pill) */}
-              <button
-                type="button"
-                onClick={handleDemoCaretaker}
-                disabled={loading}
-                className="flex items-center gap-2.5 p-3 rounded-2xl border border-[#101820] bg-[#101820] hover:bg-black transition-all text-left group active:scale-[0.98] shadow-xs"
-              >
-                <div className="w-8 h-8 rounded-full bg-white/15 text-[#3fb6ad] flex items-center justify-center shrink-0">
-                  <Stethoscope className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-bold text-white truncate font-heading">
-                    Demo: Caretaker
-                  </div>
-                  <div className="text-[11px] text-slate-400 truncate">
-                    Nurse Kavita
-                  </div>
-                </div>
-              </button>
-            </div>
-
-            <p className="text-[10px] text-slate-400 text-center mt-3 font-medium">
-              Pre-linked to Patient Ramesh Verma (Care Code: 482910)
+          {/* Production Trust & Security Guarantee */}
+          <div className="mt-6 pt-5 border-t border-[#e6ecf1] flex items-center justify-center gap-2 text-slate-500">
+            <ShieldCheck className="w-4 h-4 text-[#3fb6ad] shrink-0" />
+            <p className="text-[11px] leading-relaxed text-center font-medium">
+              HIPAA & NDHM Aligned • End-to-End Encrypted Care Coordination
             </p>
           </div>
         </div>
+
+        <p className="text-center text-xs text-slate-400 mt-6">
+          © {new Date().getFullYear()} The CarePal Healthcare Solutions Pvt. Ltd. All rights reserved.
+        </p>
       </div>
     </div>
   );

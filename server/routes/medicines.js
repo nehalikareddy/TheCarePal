@@ -30,9 +30,11 @@ router.post('/', auth, async (req, res) => {
       prescriptionImageUrl
     } = req.body;
 
-    if (!patientId || !name || !strength || !dose || !times || !startDate || !endDate) {
+    const effectiveEndDate = endDate || new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0];
+
+    if (!patientId || !name || !strength || !dose || !times || !startDate) {
       return res.status(400).json({
-        message: 'Missing required medicine fields (patientId, name, strength, dose, times, startDate, endDate)'
+        message: 'Missing required medicine fields (patientId, name, strength, dose, times, startDate)'
       });
     }
 
@@ -48,7 +50,7 @@ router.post('/', auth, async (req, res) => {
       times,
       food: food || 'after',
       startDate,
-      endDate,
+      endDate: effectiveEndDate,
       currentStock: currentStock !== undefined ? Number(currentStock) : 10,
       lowStockThresholdDays: lowStockThresholdDays !== undefined ? Number(lowStockThresholdDays) : 3,
       prescriptionImageUrl: prescriptionImageUrl || ''

@@ -35,7 +35,10 @@ export default function FamilyView({ patient, user }) {
   const [medError, setMedError] = useState('');
 
   const fetchFamilyData = async () => {
-    if (!patient) return;
+    if (!patient) {
+      setLoading(false);
+      return;
+    }
     try {
       const [adhRes, medRes] = await Promise.all([
         api.get(`/adherence/weekly/${patient._id}`),

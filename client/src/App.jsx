@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import PatientBanner from './components/PatientBanner';
 import AuthView from './components/AuthView';
@@ -7,23 +7,25 @@ import FamilyView from './components/FamilyView';
 import PairPatientModal from './components/PairPatientModal';
 
 import api from './services/api';
-import { initSocket, getSocket, joinPatientRoom, leavePatientRoom } from './services/socket';
+import { initSocket, joinPatientRoom, leavePatientRoom } from './services/socket';
 import {
   requestNotificationPermission,
   sendBrowserNotification,
   playNotificationChime,
 } from './utils/notifications';
-import { Stethoscope, Users, RefreshCw } from 'lucide-react';
+import { Stethoscope, Users, HeartHandshake, PlusCircle } from 'lucide-react';
 
 export default function App() {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('thecarepal_token') || '');
+  const [token, setToken] = useState(
+    localStorage.getItem('thecarepal_token') || localStorage.getItem('carepal_token') || ''
+  );
   const [patients, setPatients] = useState([]);
   const [currentPatient, setCurrentPatient] = useState(null);
   const [isPairModalOpen, setIsPairModalOpen] = useState(false);
   
-  // Quick Portal Preview Switcher (Evaluator friendly)
-  const [activeRoleView, setActiveRoleView] = useState('caretaker'); // 'caretaker' | 'family'
+  // Active view: defaults to user's registered role ('caretaker' | 'family')
+  const [activeRoleView, setActiveRoleView] = useState('family');
 
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
@@ -36,7 +38,8 @@ export default function App() {
     requestNotificationPermission();
 
     const fetchProfile = async () => {
-      const storedToken = localStorage.getItem('thecarepal_token');
+      const storedToken =
+        localStorage.getItem('thecarepal_token') || localStorage.getItem('carepal_token');
       if (!storedToken) {
         setLoadingInitial(false);
         return;
@@ -46,7 +49,7 @@ export default function App() {
         const res = await api.get('/auth/me');
         const userData = res.data.user;
         setUser(userData);
-        setActiveRoleView(userData.role);
+        setActiveRoleView(userData.role || 'family');
 
         // Fetch patients
         const patRes = await api.get('/patients');
@@ -59,6 +62,7 @@ export default function App() {
       } catch (err) {
         console.error('Session expired or invalid token:', err);
         localStorage.removeItem('thecarepal_token');
+        localStorage.removeItem('carepal_token');
         setUser(null);
       } finally {
         setLoadingInitial(false);
@@ -144,7 +148,7 @@ export default function App() {
   const handleLoginSuccess = async (userData, newToken) => {
     setUser(userData);
     setToken(newToken);
-    setActiveRoleView(userData.role);
+    setActiveRoleView(userData.role || 'family');
 
     try {
       const patRes = await api.get('/patients');
@@ -160,6 +164,7 @@ export default function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('thecarepal_token');
+    localStorage.removeItem('carepal_token');
     setUser(null);
     setToken('');
     setPatients([]);
@@ -178,8 +183,8 @@ export default function App() {
   if (loadingInitial) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center">
-        <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mb-3" />
-        <p className="text-sm font-bold text-slate-700">Starting TheCarePal MedSync...</p>
+        <div className="w-10 h-10 border-4 border-[#3fb6ad] border-t-transparent rounded-full animate-spin mb-3" />
+        <p className="text-sm font-bold text-[#101820] font-heading">Starting TheCarePal MedSync...</p>
       </div>
     );
   }
@@ -201,69 +206,103 @@ export default function App() {
       {/* Main Container: Mobile-First Max-W-3xl */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6">
         
-        {/* Evaluator Quick Role Switcher Banner (CarePal Pill Tag Style) */}
-        <div className="mb-5 bg-white border border-[#e6ecf1] rounded-2xl p-2.5 sm:px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center gap-2 text-xs text-slate-700 font-medium">
-            <span className="w-2 h-2 rounded-full bg-[#3fb6ad] animate-pulse" />
-            <span className="font-bold text-[#101820] font-heading">Portal Preview:</span>
-            <span className="text-slate-500 text-[11px] sm:text-xs">Switch view to test both experiences live:</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-full text-xs font-bold self-start sm:self-auto font-heading">
+        {/* Onboarding State for Users Without Any Linked Patients */}
+        {!currentPatient ? (
+          <div className="bg-white border border-[#e6ecf1] rounded-3xl p-8 sm:p-10 text-center shadow-[0_2px_8px_rgba(0,0,0,0.04)] my-6">
+            <div className="w-16 h-16 rounded-full bg-[#3fb6ad]/15 text-[#04302c] mx-auto flex items-center justify-center mb-4 shadow-xs">
+              <HeartHandshake className="w-8 h-8 text-[#3fb6ad]" />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-[#101820] font-heading mb-2">
+              Welcome to TheCarePal, {user.name}!
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto mb-6 leading-relaxed">
+              {user.role === 'family'
+                ? 'To begin tracking and managing medication schedules, create a patient profile for your loved one. A unique 6-digit Care Code will be generated for your caregivers.'
+                : 'To begin administering and logging medications, link with your patient using the 6-digit Care Code provided by their family.'}
+            </p>
             <button
-              onClick={() => setActiveRoleView('caretaker')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all ${
-                activeRoleView === 'caretaker'
-                  ? 'bg-[#101820] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
+              onClick={() => setIsPairModalOpen(true)}
+              className="inline-flex items-center gap-2 py-3 px-6 rounded-full font-bold text-xs sm:text-sm bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] font-heading shadow-[0_4px_14px_rgba(63,182,173,0.3)] hover:shadow-[0_8px_20px_rgba(63,182,173,0.45)] transition-all active:scale-[0.98]"
             >
-              <Stethoscope className="w-3.5 h-3.5 text-[#3fb6ad]" />
-              <span>Caretaker View</span>
-            </button>
-
-            <button
-              onClick={() => setActiveRoleView('family')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all ${
-                activeRoleView === 'family'
-                  ? 'bg-[#101820] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Users className="w-3.5 h-3.5 text-[#3fb6ad]" />
-              <span>Family View</span>
+              <PlusCircle className="w-4 h-4" />
+              <span>{user.role === 'family' ? 'Create Patient Profile' : 'Enter 6-Digit Care Code'}</span>
             </button>
           </div>
-        </div>
-
-        {/* Patient Context Banner with 1-Click Copyable 6-digit Code */}
-        <PatientBanner
-          patient={currentPatient}
-          patientsList={patients}
-          onSelectPatient={(p) => setCurrentPatient(p)}
-          onOpenPairModal={() => setIsPairModalOpen(true)}
-          userRole={user.role}
-        />
-
-        {/* Dynamic Role-Based View */}
-        {activeRoleView === 'caretaker' ? (
-          <CaretakerView
-            key={`caretaker-${currentPatient?._id}-${refreshTrigger}`}
-            patient={currentPatient}
-            user={user}
-          />
         ) : (
-          <FamilyView
-            key={`family-${currentPatient?._id}-${refreshTrigger}`}
-            patient={currentPatient}
-            user={user}
-          />
+          <>
+            {/* Patient Context Banner with 1-Click Copyable 6-digit Code */}
+            <PatientBanner
+              patient={currentPatient}
+              patientsList={patients}
+              onSelectPatient={(p) => setCurrentPatient(p)}
+              onOpenPairModal={() => setIsPairModalOpen(true)}
+              userRole={user.role}
+            />
+
+            {/* Seamless View Navigation */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-[#101820] font-heading">
+                  {activeRoleView === 'caretaker' ? "Today's Medication Checklist" : "Prescriptions & Adherence"}
+                </h2>
+                <p className="text-xs text-slate-500">
+                  {activeRoleView === 'caretaker'
+                    ? "Real-time dosage administration & caregiver shift logs"
+                    : "Comprehensive medication regimen, weekly adherence & alerts"}
+                </p>
+              </div>
+
+              <div className="flex items-center p-1 bg-slate-100 rounded-full text-xs font-bold font-heading border border-[#e6ecf1] self-start sm:self-auto shadow-2xs">
+                <button
+                  onClick={() => setActiveRoleView('caretaker')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all ${
+                    activeRoleView === 'caretaker'
+                      ? 'bg-[#101820] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Stethoscope className="w-3.5 h-3.5 text-[#3fb6ad]" />
+                  <span>Checklist</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveRoleView('family')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all ${
+                    activeRoleView === 'family'
+                      ? 'bg-[#101820] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5 text-[#3fb6ad]" />
+                  <span>Overview & Meds</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Dynamic View: Caretaker Checklist vs Family Overview */}
+            {activeRoleView === 'caretaker' ? (
+              <CaretakerView
+                key={`caretaker-${currentPatient?._id}-${refreshTrigger}`}
+                patient={currentPatient}
+                user={user}
+              />
+            ) : (
+              <FamilyView
+                key={`family-${currentPatient?._id}-${refreshTrigger}`}
+                patient={currentPatient}
+                user={user}
+              />
+            )}
+          </>
         )}
       </main>
 
       {/* Footer */}
-      <footer className="py-6 border-t border-slate-200 text-center text-xs text-slate-400">
-        <p>TheCarePal MedSync • Trusted Care at Home</p>
+      <footer className="py-6 border-t border-[#e6ecf1] bg-white text-center text-xs text-slate-500 font-medium">
+        <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p className="font-heading text-slate-700">TheCarePal MedSync • Trusted Care at Home</p>
+          <p className="text-[11px] text-slate-400">Secure Live Synchronization via WebSocket</p>
+        </div>
       </footer>
 
       {/* 6-Digit Pairing & Patient Creation Modal */}
