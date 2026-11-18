@@ -9,7 +9,7 @@
 
 | Resource | URL | Details |
 | :--- | :--- | :--- |
-| **Frontend Application** | [https://the-care-pal-nine.vercel.app](https://the-care-pal-nine.vercel.app) | Deployed on Vercel (Auto-deploy from `main`) |
+| **Frontend Application** | [https://the-care-pal-amr8.vercel.app](https://the-care-pal-amr8.vercel.app) | Deployed on Vercel (Auto-deploy from `main`) |
 | **Backend REST & WebSocket API** | [https://thecarepal.onrender.com](https://thecarepal.onrender.com) | Deployed on Render Web Service |
 | **Health Check Endpoint** | [https://thecarepal.onrender.com/api/health](https://thecarepal.onrender.com/api/health) | Returns `{ status: "ok", uptime, database: "connected" }` |
 | **Active Test Patient Care Code** | **`482910`** | Patient: Ramesh Verma (74 yrs, Post-Stroke & Hypertension) |
