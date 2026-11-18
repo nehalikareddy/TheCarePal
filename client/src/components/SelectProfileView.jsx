@@ -64,47 +64,47 @@ export default function SelectProfileView({
           <button
             type="button"
             onClick={onOpenPairModal}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#04302c] hover:underline font-heading"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-300 hover:border-slate-500 bg-transparent text-slate-700 hover:text-slate-900 text-xs font-bold font-heading transition-all shadow-none active:scale-95 cursor-pointer"
           >
             <PlusCircle className="w-3.5 h-3.5" />
             <span>{user?.role === 'family' ? 'Add Patient' : 'Link via Care Code'}</span>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {/* Active Linked Patients */}
           {patients.map((pat) => (
             <div
               key={pat._id}
               onClick={() => onSelectPatient(pat)}
-              className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-[0_2px_12px_rgba(15,26,34,0.05)] hover:shadow-[0_12px_32px_rgba(15,26,34,0.1)] hover:border-[#3fb6ad] transition-all cursor-pointer flex flex-col justify-between group active:scale-[0.99] min-h-[290px]"
+              className="bg-white rounded-3xl p-5 sm:p-5.5 border border-slate-200/90 shadow-[0_2px_10px_rgba(15,26,34,0.04)] hover:shadow-[0_8px_24px_rgba(15,26,34,0.08)] hover:border-[#3fb6ad] transition-all cursor-pointer flex flex-col justify-between group active:scale-[0.99] min-h-[250px]"
             >
               <div>
-                <div className="flex items-start justify-between gap-3 mb-4">
+                <div className="flex items-start justify-between gap-3 mb-3.5">
                   {pat.profilePicture ? (
                     <img
                       src={pat.profilePicture}
                       alt={pat.name}
-                      className="w-14 h-14 rounded-2xl object-cover border border-[#3fb6ad]/30 shadow-xs group-hover:scale-105 transition-transform"
+                      className="w-12 h-12 rounded-2xl object-cover border border-[#3fb6ad]/30 shadow-xs group-hover:scale-105 transition-transform"
                     />
                   ) : (
-                    <div className="w-14 h-14 rounded-2xl bg-[#3fb6ad]/15 text-[#04302c] flex items-center justify-center font-bold text-lg font-heading border border-[#3fb6ad]/30 group-hover:scale-105 transition-transform">
+                    <div className="w-12 h-12 rounded-2xl bg-[#3fb6ad]/15 text-[#04302c] flex items-center justify-center font-bold text-base font-heading border border-[#3fb6ad]/30 group-hover:scale-105 transition-transform">
                       {getInitials(pat.name)}
                     </div>
                   )}
-                  <span className="text-xs font-mono font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200">
+                  <span className="text-[11px] font-mono font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200">
                     Code: {pat.careCode}
                   </span>
                 </div>
 
-                <h3 className="text-xl font-bold text-slate-900 font-heading group-hover:text-[#04302c] transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 font-heading group-hover:text-[#04302c] transition-colors">
                   {pat.name}
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
                   {pat.age} years old
                 </p>
 
-                <div className="mt-3.5 p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs sm:text-sm space-y-1.5">
+                <div className="mt-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs space-y-1">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block font-heading">
                       Condition
@@ -115,8 +115,8 @@ export default function SelectProfileView({
                   </div>
 
                   {pat.emergencyContact && (
-                    <div className="pt-1.5 border-t border-slate-200/60 flex items-center gap-1.5 text-xs">
-                      <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <div className="pt-1.5 border-t border-slate-200/60 flex items-center gap-1.5 text-[11px]">
+                      <Phone className="w-3 h-3 text-emerald-600 shrink-0" />
                       <span className="text-slate-500 font-medium font-heading">Emergency:</span>
                       <span className="text-emerald-700 font-semibold truncate">{pat.emergencyContact}</span>
                     </div>
@@ -124,7 +124,7 @@ export default function SelectProfileView({
                 </div>
               </div>
 
-              <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm font-bold font-heading text-[#04302c]">
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold font-heading text-[#04302c]">
                 <span className="group-hover:text-[#3fb6ad] transition-colors">
                   Open Care Dashboard
                 </span>
@@ -139,11 +139,11 @@ export default function SelectProfileView({
           {pendingApprovals.map((pending) => (
             <div
               key={pending._id}
-              className="bg-amber-50/60 rounded-3xl p-6 sm:p-7 border-2 border-amber-300/80 shadow-xs flex flex-col justify-between relative overflow-hidden min-h-[290px]"
+              className="bg-amber-50/60 rounded-3xl p-5 sm:p-5.5 border-2 border-amber-300/80 shadow-xs flex flex-col justify-between relative overflow-hidden min-h-[250px]"
             >
               <div>
-                <div className="flex items-start justify-between gap-3 mb-4">
-                  <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold text-lg font-heading border border-amber-300">
+                <div className="flex items-start justify-between gap-3 mb-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold text-base font-heading border border-amber-300">
                     {getInitials(pending.name)}
                   </div>
                   <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-heading">
@@ -152,21 +152,21 @@ export default function SelectProfileView({
                   </span>
                 </div>
 
-                <h3 className="text-xl font-bold text-amber-950 font-heading">
+                <h3 className="text-lg font-bold text-amber-950 font-heading">
                   {pending.name}
                 </h3>
                 <p className="text-xs text-amber-800 font-medium mt-0.5">
                   Care Code submitted • Awaiting Family Review
                 </p>
 
-                <div className="mt-3.5 p-3 rounded-2xl bg-white/70 border border-amber-200/80 text-xs text-amber-900">
+                <div className="mt-3 p-2.5 rounded-xl bg-white/70 border border-amber-200/80 text-xs text-amber-900">
                   <p className="text-[11px] leading-relaxed">
                     Request sent to family administrator. Records and schedules unlock automatically as soon as approved.
                   </p>
                 </div>
               </div>
 
-              <div className="mt-5 pt-3.5 border-t border-amber-200/60 flex items-center justify-between text-xs font-semibold text-amber-800">
+              <div className="mt-4 pt-3 border-t border-amber-200/60 flex items-center justify-between text-xs font-semibold text-amber-800">
                 <span className="font-heading">Auto-Syncing Status...</span>
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
               </div>
@@ -177,15 +177,15 @@ export default function SelectProfileView({
           <button
             type="button"
             onClick={onOpenPairModal}
-            className="rounded-3xl p-6 sm:p-7 border-2 border-dashed border-slate-300 hover:border-[#3fb6ad] hover:bg-[#3fb6ad]/5 transition-all text-center flex flex-col items-center justify-center min-h-[290px] cursor-pointer group active:scale-[0.99]"
+            className="rounded-3xl p-5 sm:p-5.5 border-2 border-dashed border-slate-300 hover:border-[#3fb6ad] hover:bg-[#3fb6ad]/5 transition-all text-center flex flex-col items-center justify-center min-h-[250px] cursor-pointer group active:scale-[0.99]"
           >
-            <div className="w-14 h-14 rounded-2xl bg-slate-100 group-hover:bg-[#3fb6ad]/20 text-slate-500 group-hover:text-[#04302c] flex items-center justify-center transition-colors mb-3">
-              <PlusCircle className="w-7 h-7" />
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 group-hover:bg-[#3fb6ad]/20 text-slate-500 group-hover:text-[#04302c] flex items-center justify-center transition-colors mb-2.5">
+              <PlusCircle className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-800 font-heading group-hover:text-[#04302c]">
+            <h3 className="text-sm font-bold text-slate-800 font-heading group-hover:text-[#04302c]">
               {user?.role === 'family' ? 'Add New Patient' : 'Link Patient via Care Code'}
             </h3>
-            <p className="text-xs text-slate-500 mt-1 max-w-[220px]">
+            <p className="text-xs text-slate-500 mt-1 max-w-[200px]">
               {user?.role === 'family'
                 ? 'Create a new patient profile with medicines and dosage rules.'
                 : 'Enter a 6-digit Care Code from the patient family to request access.'}

@@ -597,17 +597,17 @@ export default function App() {
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Automatic Overdue Medication Watcher Banners */}
         {overdueAlerts && overdueAlerts.length > 0 && (
-          <div className="space-y-3 mb-4">
+          <div className="space-y-2 mb-3">
             {overdueAlerts.map((alertItem) => (
               <div
                 key={alertItem.key}
-                className="py-2.5 px-3.5 sm:py-3 sm:px-4 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-950 shadow-xs flex items-center justify-between gap-2.5 animate-in fade-in"
+                className="py-1.5 px-3 sm:py-2 sm:px-3.5 rounded-lg bg-amber-500/10 border border-amber-500/40 text-amber-950 shadow-xs flex items-center justify-between gap-2 animate-in fade-in"
               >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-900 flex items-center justify-center shrink-0">
-                    <AlertTriangle className="w-4 h-4 text-amber-800" />
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-6 h-6 rounded-md bg-amber-500/20 text-amber-900 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-800" />
                   </div>
-                  <p className="text-xs sm:text-sm font-semibold text-amber-950 font-heading min-w-0">
+                  <p className="text-xs font-semibold text-amber-950 font-heading min-w-0">
                     {alertItem.message}
                   </p>
                 </div>
@@ -616,7 +616,7 @@ export default function App() {
                   onClick={() =>
                     setOverdueAlerts((prev) => prev.filter((a) => a.key !== alertItem.key))
                   }
-                  className="p-1 text-amber-800 hover:text-amber-950 hover:bg-amber-200/50 min-w-[28px] min-h-[28px] flex items-center justify-center rounded-lg shrink-0 text-xs font-bold transition-colors"
+                  className="p-1 text-amber-800 hover:text-amber-950 hover:bg-amber-200/50 min-w-[24px] min-h-[24px] flex items-center justify-center rounded shrink-0 text-xs font-bold transition-colors"
                   title="Dismiss alert"
                   aria-label="Dismiss alert"
                 >
@@ -783,10 +783,9 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="py-6 border-t border-[#e6ecf1] bg-white text-center text-xs text-slate-500 font-medium">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <footer className="py-5 border-t border-[#e6ecf1] bg-white text-center text-xs text-slate-500 font-medium">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center">
           <p className="font-heading text-slate-700">TheCarePal MedSync • Trusted Care at Home</p>
-          <p className="text-[11px] text-slate-400">Secure Live Synchronization via WebSocket</p>
         </div>
       </footer>
 

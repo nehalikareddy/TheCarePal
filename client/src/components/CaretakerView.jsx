@@ -352,23 +352,32 @@ export default function CaretakerView({ patient, user }) {
         <div className="space-y-6">
           {/* Daily Progress Overview Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
-            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-[#e6ecf1] shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-heading">Total Doses</span>
-              <span className="text-xl sm:text-2xl font-extrabold text-[#101820] mt-1 font-heading">{summary.total}</span>
+            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-heading">Total Doses</span>
+              <span className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1 font-heading">{summary.total}</span>
             </div>
 
-            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-emerald-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col bg-emerald-50/20">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 font-heading">Given</span>
+            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-heading">Given</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              </div>
               <span className="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-1 font-heading">{summary.given}</span>
             </div>
 
-            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-rose-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col bg-rose-50/20">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-rose-700 font-heading">Skipped</span>
+            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-heading">Skipped</span>
+                <span className="w-2 h-2 rounded-full bg-rose-500" />
+              </div>
               <span className="text-xl sm:text-2xl font-extrabold text-rose-600 mt-1 font-heading">{summary.skipped || 0}</span>
             </div>
 
-            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-amber-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col bg-amber-50/20">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 font-heading">Pending</span>
+            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-heading">Pending</span>
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+              </div>
               <span className="text-xl sm:text-2xl font-extrabold text-amber-600 mt-1 font-heading">{summary.pending}</span>
             </div>
           </div>
