@@ -31,6 +31,22 @@ export default function CaretakerView({ patient, user }) {
   const [submittingAction, setSubmittingAction] = useState(false);
   const [actionSuccessMessage, setActionSuccessMessage] = useState('');
 
+  // Safe fallback default: derived doses from scheduleData
+  const doses = scheduleData?.doses || scheduleData?.slots || [];
+
+  // Collect all unique medicines in today's schedule that have an attached prescriptionUrl
+  // STRICTLY at the top before any conditional returns (Rules of Hooks)
+  const rxMedicines = useMemo(() => {
+    const map = new Map();
+    (doses || []).forEach((d) => {
+      const key = d?.medicineId || d?.name;
+      if (d?.prescriptionUrl && !map.has(key)) {
+        map.set(key, d);
+      }
+    });
+    return Array.from(map.values());
+  }, [doses]);
+
   const openRxModal = (list, startIndex = 0) => {
     setRxModalList(list || []);
     setCurrentRxIndex(startIndex >= 0 && startIndex < (list?.length || 0) ? startIndex : 0);
@@ -136,22 +152,9 @@ export default function CaretakerView({ patient, user }) {
     );
   }
 
-  const doses = scheduleData?.doses || scheduleData?.slots || [];
   const morningDoses = doses.filter((d) => (d.slot || d.bucket) === 'Morning');
   const afternoonDoses = doses.filter((d) => (d.slot || d.bucket) === 'Afternoon');
   const nightDoses = doses.filter((d) => (d.slot || d.bucket) === 'Night');
-
-  // Collect all unique medicines in today's schedule that have an attached prescriptionUrl
-  const rxMedicines = useMemo(() => {
-    const map = new Map();
-    doses.forEach((d) => {
-      const key = d.medicineId || d.name;
-      if (d.prescriptionUrl && !map.has(key)) {
-        map.set(key, d);
-      }
-    });
-    return Array.from(map.values());
-  }, [doses]);
 
   const summary = scheduleData?.summary || { total: 0, given: 0, skipped: 0, pending: 0 };
 
