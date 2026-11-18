@@ -23,20 +23,18 @@ export default function Navbar({ user, onLogout, isSocketConnected, onOpenProfil
 
         {/* Right Action Controls */}
         <div className="flex items-center gap-2.5 sm:gap-3">
-          {/* Real-time Socket Indicator */}
-          <div
-            className="h-9 inline-flex items-center justify-center px-2.5 sm:px-3 rounded-xl text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-600 shrink-0"
-            title={isSocketConnected ? 'Real-time WebSocket Live Sync Active' : 'Connecting to live socket...'}
-          >
-            <span
-              className={`w-2.5 h-2.5 sm:w-2 sm:h-2 rounded-full ${
-                isSocketConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'
+          {/* User Role Pill (replaced Live Sync) */}
+          {user && (
+            <div
+              className={`h-9 inline-flex items-center justify-center px-3 sm:px-3.5 rounded-xl text-xs font-bold border shrink-0 font-heading ${
+                user.role === 'family'
+                  ? 'bg-blue-50 text-[#0074ff] border-blue-200'
+                  : 'bg-emerald-50 text-emerald-800 border-emerald-200'
               }`}
-            />
-            <span className="hidden md:inline ml-1.5 text-[11px] font-heading font-bold text-slate-700">
-              {isSocketConnected ? 'Live Sync' : 'Connecting'}
-            </span>
-          </div>
+            >
+              <span>{user.role === 'family' ? 'Family' : 'Caretaker'}</span>
+            </div>
+          )}
 
           {/* User Profile Pill & Labeled Logout Button */}
           {user && (
@@ -45,7 +43,7 @@ export default function Navbar({ user, onLogout, isSocketConnected, onOpenProfil
               <button
                 type="button"
                 onClick={onOpenProfile}
-                className="h-9 inline-flex items-center gap-2 px-2 sm:px-2.5 rounded-xl hover:bg-slate-100 transition text-left cursor-pointer group"
+                className="h-9 inline-flex items-center gap-2 px-1.5 sm:px-2 rounded-xl hover:bg-slate-100 transition text-left cursor-pointer group"
                 title="View & Edit Profile"
                 aria-label="View & Edit Profile"
               >
@@ -60,20 +58,9 @@ export default function Navbar({ user, onLogout, isSocketConnected, onOpenProfil
                     {getInitials(user.name)}
                   </div>
                 )}
-                <div className="flex flex-col text-left gap-0.5 justify-center">
-                  <span className="hidden sm:inline text-xs font-bold text-slate-800 leading-none truncate max-w-[120px] font-heading group-hover:text-[#04302c]">
-                    {user.name}
-                  </span>
-                  <span
-                    className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full w-fit leading-none font-heading ${
-                      user.role === 'family'
-                        ? 'bg-blue-50 text-[#0074ff] border border-blue-200'
-                        : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                    }`}
-                  >
-                    {user.role === 'family' ? 'FAMILY' : 'CARETAKER'}
-                  </span>
-                </div>
+                <span className="hidden sm:inline text-xs sm:text-sm font-bold text-slate-800 font-heading group-hover:text-[#04302c] truncate max-w-[130px]">
+                  {user.name}
+                </span>
               </button>
 
               {/* Labeled Logout Button */}
