@@ -263,7 +263,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="py-6 border-t border-slate-200 text-center text-xs text-slate-400">
-        <p>TheCarePal MedSync • Trusted Care at Home • Peace of Mind</p>
+        <p>TheCarePal MedSync • Trusted Care at Home</p>
       </footer>
 
       {/* 6-Digit Pairing & Patient Creation Modal */}

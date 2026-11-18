@@ -1,7 +1,7 @@
 # TheCarePal MedSync (Task FS-05)
 
 > **Shared Medication Schedule, Adherence Tracker & Reminders**  
-> Built as a native companion module for TheCarePal’s home-care ecosystem (*"Trusted Care at Home • Peace of Mind"*).
+> Built as a native companion module for TheCarePal’s home-care ecosystem (*"Trusted Care at Home"*).
 
 ---
 
