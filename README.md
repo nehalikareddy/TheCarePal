@@ -116,6 +116,29 @@ For instant testing, the login screen features **Two 1-Click Demo Login Buttons*
 
 ---
 
+## 🌐 Cloud Deployment Guide (Render / Vercel)
+
+### 1. Backend Web Service (Render)
+- **Repository:** Connect `TheCarePal` repository.
+- **Root Directory:** `server`
+- **Environment:** `Node`
+- **Build Command:** `npm install`
+- **Start Command:** `node server.js`
+- **Environment Variables:**
+  - `PORT`: `5000`
+  - `MONGODB_URI`: `mongodb+srv://...`
+  - `JWT_SECRET`: `<your_secret_key>`
+  - `CLIENT_URL`: `https://your-frontend-app.vercel.app` (or `*`)
+
+### 2. Frontend Web App (Render Static Site or Vercel)
+- **Root Directory:** `client`
+- **Build Command:** `npm run build`
+- **Publish / Output Directory:** `dist`
+- **Environment Variables:**
+  - `VITE_API_URL`: `https://thecarepal.onrender.com` (your deployed backend URL)
+
+---
+
 ## 🧪 Verification & Testing Commands
 
 To run quick validation tests against the live API and database:
