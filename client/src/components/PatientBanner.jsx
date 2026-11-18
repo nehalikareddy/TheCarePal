@@ -10,9 +10,11 @@ import {
   UserCheck,
   Shield,
   X,
-  AlertCircle
+  AlertCircle,
+  Pencil,
 } from 'lucide-react';
 import api from '../services/api';
+import EditPatientModal from './EditPatientModal';
 
 function getInitials(name = '') {
   return name
@@ -31,9 +33,11 @@ export default function PatientBanner({
   onOpenPairModal,
   userRole,
   onPatientUpdated,
-  onBackToProfiles
+  onBackToProfiles,
+  onEditPatient,
 }) {
   const [copied, setCopied] = useState(false);
+  const [isEditPatientOpen, setIsEditPatientOpen] = useState(false);
 
   // Care Team Modal State
   const [isCareTeamOpen, setIsCareTeamOpen] = useState(false);
@@ -201,6 +205,20 @@ export default function PatientBanner({
               >
                 <span>&larr; All Profiles</span>
               </button>
+              {userRole === 'family' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onEditPatient) onEditPatient(patient);
+                    else setIsEditPatientOpen(true);
+                  }}
+                  className="inline-flex items-center gap-1 text-[11px] bg-[#3fb6ad]/20 hover:bg-[#3fb6ad]/30 text-white px-2.5 py-0.5 rounded-full border border-[#3fb6ad]/40 transition-colors font-heading active:scale-95 cursor-pointer"
+                  title="Edit Patient Details"
+                >
+                  <Pencil className="w-3 h-3 text-[#3fb6ad]" />
+                  <span>Edit Patient</span>
+                </button>
+              )}
             </div>
 
             <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight mt-0.5 font-heading flex items-center gap-2 flex-wrap">
@@ -544,6 +562,17 @@ export default function PatientBanner({
           </div>
         </div>
       )}
+
+      {/* Edit Patient Details Modal */}
+      <EditPatientModal
+        isOpen={isEditPatientOpen}
+        onClose={() => setIsEditPatientOpen(false)}
+        patient={patient}
+        onPatientUpdated={(updated) => {
+          if (onPatientUpdated) onPatientUpdated(updated);
+          setIsEditPatientOpen(false);
+        }}
+      />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   Phone,
   MapPin,
+  Pencil,
 } from 'lucide-react';
 
 function getInitials(name = '') {
@@ -30,11 +31,12 @@ export default function SelectProfileView({
   onSelectPatient,
   onOpenPairModal,
   onOpenProfile,
+  onEditPatient,
 }) {
   return (
     <div className="max-w-5xl w-full mx-auto px-4 sm:px-6 py-8">
-      {/* Top Greeting & User Profile Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+      {/* Top Greeting */}
+      <div className="pb-6 border-b border-slate-200">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#04302c] bg-[#3fb6ad]/20 px-2 py-0.5 rounded-full font-heading">
@@ -53,23 +55,6 @@ export default function SelectProfileView({
             Select a patient profile to manage medication schedules, logs, and adherence.
           </p>
         </div>
-
-        <button
-          type="button"
-          onClick={onOpenProfile}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold font-heading shadow-xs transition active:scale-95 shrink-0 self-start sm:self-center"
-        >
-          {user?.profilePicture ? (
-            <img
-              src={user.profilePicture}
-              alt={user.name}
-              className="w-5 h-5 rounded-full object-cover"
-            />
-          ) : (
-            <User className="w-4 h-4 text-[#3fb6ad]" />
-          )}
-          <span>Edit My Profile</span>
-        </button>
       </div>
 
       {/* Patient Cards Grid */}
@@ -109,9 +94,25 @@ export default function SelectProfileView({
                       {getInitials(pat.name)}
                     </div>
                   )}
-                  <span className="text-[11px] font-mono font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded-lg border border-slate-200">
-                    Code: {pat.careCode}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-mono font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded-lg border border-slate-200">
+                      Code: {pat.careCode}
+                    </span>
+                    {user?.role === 'family' && onEditPatient && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditPatient(pat);
+                        }}
+                        className="p-1 rounded-lg bg-slate-100 hover:bg-[#3fb6ad]/20 text-slate-500 hover:text-[#04302c] border border-slate-200 transition"
+                        title="Edit Patient Details"
+                        aria-label="Edit Patient Details"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">

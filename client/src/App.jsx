@@ -6,6 +6,7 @@ import CaretakerView from './components/CaretakerView';
 import FamilyView from './components/FamilyView';
 import PairPatientModal from './components/PairPatientModal';
 import ProfileModal from './components/ProfileModal';
+import EditPatientModal from './components/EditPatientModal';
 import SelectProfileView from './components/SelectProfileView';
 
 import api from './services/api';
@@ -48,6 +49,7 @@ export default function App() {
   const [patients, setPatients] = useState([]);
   const [currentPatient, setCurrentPatient] = useState(null);
   const [isPairModalOpen, setIsPairModalOpen] = useState(false);
+  const [editingPatient, setEditingPatient] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isFirstTimeProfile, setIsFirstTimeProfile] = useState(false);
   const [liveAlert, setLiveAlert] = useState(null);
@@ -750,6 +752,7 @@ export default function App() {
               setIsFirstTimeProfile(false);
               setIsProfileModalOpen(true);
             }}
+            onEditPatient={(pat) => setEditingPatient(pat)}
           />
         ) : (
           <>
@@ -761,6 +764,7 @@ export default function App() {
               onBackToProfiles={() => setCurrentPatient(null)}
               onOpenPairModal={() => setIsPairModalOpen(true)}
               userRole={user.role}
+              onEditPatient={(pat) => setEditingPatient(pat)}
               onPatientUpdated={(updated) => {
                 setPatients((prev) =>
                   prev.map((p) => (String(p._id) === String(updated._id) ? updated : p))
@@ -790,7 +794,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="py-6 border-t border-[#e6ecf1] bg-white text-center text-xs text-slate-500 font-medium">
-        <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="font-heading text-slate-700">TheCarePal MedSync • Trusted Care at Home</p>
           <p className="text-[11px] text-slate-400">Secure Live Synchronization via WebSocket</p>
         </div>
@@ -833,6 +837,23 @@ export default function App() {
           localStorage.setItem('thecarepal_user', JSON.stringify(updatedUser));
         }}
         isFirstTimePrompt={isFirstTimeProfile}
+      />
+
+      {/* Edit Patient Details Modal */}
+      <EditPatientModal
+        isOpen={Boolean(editingPatient)}
+        onClose={() => setEditingPatient(null)}
+        patient={editingPatient}
+        onPatientUpdated={(updated) => {
+          setPatients((prev) =>
+            prev.map((p) => (String(p._id) === String(updated._id) ? updated : p))
+          );
+          if (currentPatient && String(currentPatient._id) === String(updated._id)) {
+            setCurrentPatient(updated);
+          }
+          setRefreshTrigger((prev) => prev + 1);
+          setEditingPatient(null);
+        }}
       />
     </div>
   );
