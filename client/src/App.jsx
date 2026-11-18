@@ -201,36 +201,36 @@ export default function App() {
       {/* Main Container: Mobile-First Max-W-3xl */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6">
         
-        {/* Evaluator Quick Role Switcher Banner */}
-        <div className="mb-4 bg-teal-50 border border-teal-200/80 rounded-2xl p-2.5 flex items-center justify-between gap-2 shadow-xs">
-          <div className="flex items-center gap-2 text-xs text-teal-900 font-medium">
-            <span className="w-2 h-2 rounded-full bg-teal-600 animate-pulse" />
-            <span className="hidden sm:inline">Portal Preview:</span>
-            <span>Switch view to test both experiences live:</span>
+        {/* Evaluator Quick Role Switcher Banner (CarePal Pill Tag Style) */}
+        <div className="mb-5 bg-white border border-[#e6ecf1] rounded-2xl p-2.5 sm:px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+          <div className="flex items-center gap-2 text-xs text-slate-700 font-medium">
+            <span className="w-2 h-2 rounded-full bg-[#3fb6ad] animate-pulse" />
+            <span className="font-bold text-[#101820] font-heading">Portal Preview:</span>
+            <span className="text-slate-500 text-[11px] sm:text-xs">Switch view to test both experiences live:</span>
           </div>
 
-          <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-teal-200 text-xs font-bold">
+          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-full text-xs font-bold self-start sm:self-auto font-heading">
             <button
               onClick={() => setActiveRoleView('caretaker')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all ${
                 activeRoleView === 'caretaker'
-                  ? 'bg-teal-700 text-white shadow-xs'
+                  ? 'bg-[#101820] text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Stethoscope className="w-3.5 h-3.5" />
+              <Stethoscope className="w-3.5 h-3.5 text-[#3fb6ad]" />
               <span>Caretaker View</span>
             </button>
 
             <button
               onClick={() => setActiveRoleView('family')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all ${
                 activeRoleView === 'family'
-                  ? 'bg-teal-700 text-white shadow-xs'
+                  ? 'bg-[#101820] text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Users className="w-3.5 h-3.5" />
+              <Users className="w-3.5 h-3.5 text-[#3fb6ad]" />
               <span>Family View</span>
             </button>
           </div>

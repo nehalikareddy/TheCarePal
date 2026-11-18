@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import BrandLogo from './BrandLogo';
-import { Users, Stethoscope, ArrowRight, ShieldCheck, HeartHandshake, Lock, Mail, User } from 'lucide-react';
+import { Users, Stethoscope, ArrowRight, Lock, Mail, User } from 'lucide-react';
 import api from '../services/api';
 
 export default function AuthView({ onLoginSuccess }) {
   const [role, setRole] = useState('family'); // 'family' | 'caretaker'
   const [isLoginMode, setIsLoginMode] = useState(true);
-  
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -26,6 +26,7 @@ export default function AuthView({ onLoginSuccess }) {
         : { name, email, password, role };
 
       const res = await api.post(endpoint, payload);
+      localStorage.setItem('carepal_token', res.data.token);
       localStorage.setItem('thecarepal_token', res.data.token);
       onLoginSuccess(res.data.user, res.data.token);
     } catch (err) {
@@ -44,10 +45,11 @@ export default function AuthView({ onLoginSuccess }) {
         email: 'rohan.family@demo.com',
         password: 'Demo@123',
       });
+      localStorage.setItem('carepal_token', res.data.token);
       localStorage.setItem('thecarepal_token', res.data.token);
       onLoginSuccess(res.data.user, res.data.token);
     } catch (err) {
-      setError('Demo login failed. Make sure database seed script has run.');
+      setError('Demo login failed. Make sure backend server is running.');
     } finally {
       setLoading(false);
     }
@@ -62,22 +64,23 @@ export default function AuthView({ onLoginSuccess }) {
         email: 'kavita.nurse@demo.com',
         password: 'Demo@123',
       });
+      localStorage.setItem('carepal_token', res.data.token);
       localStorage.setItem('thecarepal_token', res.data.token);
       onLoginSuccess(res.data.user, res.data.token);
     } catch (err) {
-      setError('Demo login failed. Make sure database seed script has run.');
+      setError('Demo login failed. Make sure backend server is running.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-teal-50/50 via-slate-50 to-slate-100 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <div className="flex justify-center mb-3">
           <BrandLogo size="large" showSubtitle={false} />
         </div>
-        <h2 className="text-xl sm:text-2xl font-extrabold text-slate-800 tracking-tight">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#101820] tracking-tight font-heading">
           MedSync Portal
         </h2>
         <p className="mt-1 text-xs sm:text-sm text-slate-600 font-medium">
@@ -86,40 +89,39 @@ export default function AuthView({ onLoginSuccess }) {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-5 sm:px-8 shadow-sm rounded-3xl border border-slate-200">
-          
-          {/* Role Selector Tabs */}
-          <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100/90 rounded-2xl mb-6">
+        <div className="bg-white py-8 px-5 sm:px-8 rounded-3xl border border-[#e6ecf1] shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+          {/* Role Selector Tabs (Pill style matching TheCarePal) */}
+          <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-full mb-6">
             <button
               type="button"
               onClick={() => setRole('family')}
-              className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-full text-xs font-bold transition-all font-heading ${
                 role === 'family'
-                  ? 'bg-white text-teal-800 shadow-sm border border-slate-200/60'
+                  ? 'bg-white text-[#101820] shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Users className="w-4 h-4 text-teal-600" />
+              <Users className="w-3.5 h-3.5 text-[#3fb6ad]" />
               <span>Family Member</span>
             </button>
 
             <button
               type="button"
               onClick={() => setRole('caretaker')}
-              className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-full text-xs font-bold transition-all font-heading ${
                 role === 'caretaker'
-                  ? 'bg-white text-teal-800 shadow-sm border border-slate-200/60'
+                  ? 'bg-white text-[#101820] shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Stethoscope className="w-4 h-4 text-teal-600" />
+              <Stethoscope className="w-3.5 h-3.5 text-[#3fb6ad]" />
               <span>Nurse / Caretaker</span>
             </button>
           </div>
 
           {/* Form Header */}
           <div className="mb-5">
-            <h3 className="text-base font-bold text-slate-800">
+            <h3 className="text-base font-bold text-[#101820] font-heading">
               {isLoginMode
                 ? `Sign In as ${role === 'family' ? 'Family Member' : 'Nurse / Caretaker'}`
                 : `Create ${role === 'family' ? 'Family' : 'Caretaker'} Account`}
@@ -142,55 +144,56 @@ export default function AuthView({ onLoginSuccess }) {
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLoginMode && (
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1 font-heading">Full Name</label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder={role === 'family' ? 'e.g. Rohan Verma' : 'e.g. Nurse Kavita R.'}
-                    className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all bg-slate-50/50"
+                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#3fb6ad] focus:border-[#3fb6ad] transition-all bg-slate-50/50"
                   />
                 </div>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1 font-heading">Email Address</label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all bg-slate-50/50"
+                  className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#3fb6ad] focus:border-[#3fb6ad] transition-all bg-slate-50/50"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1 font-heading">Password</label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all bg-slate-50/50"
+                  className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#3fb6ad] focus:border-[#3fb6ad] transition-all bg-slate-50/50"
                 />
               </div>
             </div>
 
+            {/* Signature CarePal Teal CTA Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3 px-4 rounded-xl text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 active:bg-teal-800 shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full mt-2 py-3 px-5 rounded-full text-sm font-bold text-[#04302c] bg-[#3fb6ad] hover:bg-[#37a79e] shadow-[0_4px_14px_rgba(63,182,173,0.3)] hover:shadow-[0_8px_20px_rgba(63,182,173,0.45)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 font-heading active:scale-[0.98]"
             >
               <span>{loading ? 'Processing...' : isLoginMode ? 'Sign In' : 'Create Account'}</span>
               <ArrowRight className="w-4 h-4" />
@@ -202,7 +205,7 @@ export default function AuthView({ onLoginSuccess }) {
             <button
               type="button"
               onClick={() => setIsLoginMode(!isLoginMode)}
-              className="text-xs font-semibold text-teal-700 hover:text-teal-800 transition-colors"
+              className="text-xs font-bold text-[#0074ff] hover:text-[#005fd1] transition-colors font-heading"
             >
               {isLoginMode
                 ? "Don't have an account? Sign up here"
@@ -213,25 +216,25 @@ export default function AuthView({ onLoginSuccess }) {
           {/* Evaluator 1-Click Demo Logins Section */}
           <div className="mt-6 pt-6 border-t border-slate-200">
             <div className="flex items-center gap-2 mb-3">
-              <span className="w-2 h-2 rounded-full bg-[#E07A5F]" />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <span className="w-2 h-2 rounded-full bg-[#3fb6ad]" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-heading">
                 1-Click Evaluator Demo Accounts
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {/* Demo Family Button */}
+              {/* Demo Family Button (CarePal Teal Pill) */}
               <button
                 type="button"
                 onClick={handleDemoFamily}
                 disabled={loading}
-                className="flex items-center gap-2.5 p-3 rounded-2xl border border-teal-200 bg-teal-50/60 hover:bg-teal-100 hover:border-teal-300 transition-all text-left group active:scale-98"
+                className="flex items-center gap-2.5 p-3 rounded-2xl border border-[#3fb6ad]/40 bg-[#3fb6ad]/10 hover:bg-[#3fb6ad]/20 transition-all text-left group active:scale-[0.98]"
               >
-                <div className="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-full bg-[#3fb6ad] text-[#04302c] flex items-center justify-center shrink-0 shadow-xs">
                   <Users className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-bold text-slate-800 group-hover:text-teal-900 truncate">
+                  <div className="text-xs font-bold text-[#04302c] group-hover:text-black truncate font-heading">
                     Demo: Family
                   </div>
                   <div className="text-[11px] text-slate-500 truncate">
@@ -240,32 +243,31 @@ export default function AuthView({ onLoginSuccess }) {
                 </div>
               </button>
 
-              {/* Demo Caretaker Button */}
+              {/* Demo Caretaker Button (CarePal Obsidian Dark Pill) */}
               <button
                 type="button"
                 onClick={handleDemoCaretaker}
                 disabled={loading}
-                className="flex items-center gap-2.5 p-3 rounded-2xl border border-amber-200 bg-amber-50/60 hover:bg-amber-100 hover:border-amber-300 transition-all text-left group active:scale-98"
+                className="flex items-center gap-2.5 p-3 rounded-2xl border border-[#101820] bg-[#101820] hover:bg-black transition-all text-left group active:scale-[0.98] shadow-xs"
               >
-                <div className="w-8 h-8 rounded-xl bg-[#E07A5F] text-white flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-full bg-white/15 text-[#3fb6ad] flex items-center justify-center shrink-0">
                   <Stethoscope className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-bold text-slate-800 group-hover:text-amber-900 truncate">
+                  <div className="text-xs font-bold text-white truncate font-heading">
                     Demo: Caretaker
                   </div>
-                  <div className="text-[11px] text-slate-500 truncate">
+                  <div className="text-[11px] text-slate-400 truncate">
                     Nurse Kavita
                   </div>
                 </div>
               </button>
             </div>
-            
+
             <p className="text-[10px] text-slate-400 text-center mt-3 font-medium">
               Pre-linked to Patient Ramesh Verma (Care Code: 482910)
             </p>
           </div>
-
         </div>
       </div>
     </div>

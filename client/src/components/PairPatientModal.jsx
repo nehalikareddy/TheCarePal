@@ -61,20 +61,22 @@ export default function PairPatientModal({ isOpen, onClose, onPatientLinked, use
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 bg-[#101820]/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-[#e6ecf1] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <KeyRound className="w-5 h-5 text-teal-600" />
-            <h3 className="text-base font-bold text-slate-800">
+        <div className="px-6 py-4 border-b border-[#e6ecf1] flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-[#3fb6ad]/15 text-[#04302c] flex items-center justify-center">
+              <KeyRound className="w-4 h-4 text-[#3fb6ad]" />
+            </div>
+            <h3 className="text-base font-bold text-[#101820] font-heading">
               {userRole === 'caretaker' ? 'Pair with Patient' : 'Patient Management'}
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -82,14 +84,14 @@ export default function PairPatientModal({ isOpen, onClose, onPatientLinked, use
 
         {/* Tab switchers if family, or direct code input */}
         <div className="p-6">
-          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl mb-5">
+          <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-full mb-5 border border-slate-200/80">
             <button
               type="button"
               onClick={() => { setActiveTab('join'); setError(''); }}
-              className={`py-2 text-xs font-bold rounded-lg transition-all ${
+              className={`py-2 text-xs font-bold rounded-full transition-all font-heading ${
                 activeTab === 'join'
-                  ? 'bg-white text-teal-800 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-800'
+                  ? 'bg-[#101820] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Enter 6-Digit Code
@@ -97,10 +99,10 @@ export default function PairPatientModal({ isOpen, onClose, onPatientLinked, use
             <button
               type="button"
               onClick={() => { setActiveTab('create'); setError(''); }}
-              className={`py-2 text-xs font-bold rounded-lg transition-all ${
+              className={`py-2 text-xs font-bold rounded-full transition-all font-heading ${
                 activeTab === 'create'
-                  ? 'bg-white text-teal-800 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-800'
+                  ? 'bg-[#101820] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Create New Patient
@@ -108,7 +110,7 @@ export default function PairPatientModal({ isOpen, onClose, onPatientLinked, use
           </div>
 
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+            <div className="mb-4 p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
               {error}
             </div>
           )}
@@ -116,7 +118,7 @@ export default function PairPatientModal({ isOpen, onClose, onPatientLinked, use
           {activeTab === 'join' ? (
             <form onSubmit={handleJoinWithCode} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-[#101820] mb-1 font-heading">
                   6-Digit Patient Care Code
                 </label>
                 <input
@@ -125,7 +127,7 @@ export default function PairPatientModal({ isOpen, onClose, onPatientLinked, use
                   value={careCode}
                   onChange={(e) => setCareCode(e.target.value.replace(/\D/g, ''))}
                   placeholder="e.g. 482910"
-                  className="w-full text-center tracking-widest font-mono text-xl py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                  className="w-full text-center tracking-widest font-mono text-xl py-3 rounded-2xl border border-slate-300 focus:ring-2 focus:ring-[#3fb6ad] focus:border-[#3fb6ad] focus:outline-none"
                   autoFocus
                 />
                 <p className="text-[11px] text-slate-500 mt-1.5 text-center">
@@ -136,7 +138,7 @@ export default function PairPatientModal({ isOpen, onClose, onPatientLinked, use
               <button
                 type="submit"
                 disabled={loading || careCode.length !== 6}
-                className="w-full py-3 px-4 rounded-xl text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3 px-4 rounded-full text-xs sm:text-sm font-bold bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] font-heading shadow-[0_4px_14px_rgba(63,182,173,0.3)] hover:shadow-[0_8px_20px_rgba(63,182,173,0.45)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.98]"
               >
                 <span>{loading ? 'Verifying...' : 'Link Patient'}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -145,19 +147,19 @@ export default function PairPatientModal({ isOpen, onClose, onPatientLinked, use
           ) : (
             <form onSubmit={handleCreatePatient} className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Patient Full Name</label>
+                <label className="block text-xs font-bold text-[#101820] mb-1 font-heading">Patient Full Name</label>
                 <input
                   type="text"
                   required
                   value={patientName}
                   onChange={(e) => setPatientName(e.target.value)}
                   placeholder="e.g. Ramesh Verma"
-                  className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#3fb6ad] focus:border-[#3fb6ad] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Age</label>
+                <label className="block text-xs font-bold text-[#101820] mb-1 font-heading">Age</label>
                 <input
                   type="number"
                   required
@@ -166,18 +168,18 @@ export default function PairPatientModal({ isOpen, onClose, onPatientLinked, use
                   value={patientAge}
                   onChange={(e) => setPatientAge(e.target.value)}
                   placeholder="e.g. 74"
-                  className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#3fb6ad] focus:border-[#3fb6ad] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Medical Condition / Note</label>
+                <label className="block text-xs font-bold text-[#101820] mb-1 font-heading">Medical Condition / Note</label>
                 <input
                   type="text"
                   value={condition}
                   onChange={(e) => setCondition(e.target.value)}
                   placeholder="e.g. Post-Stroke & Hypertension Care"
-                  className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#3fb6ad] focus:border-[#3fb6ad] focus:outline-none"
                 />
               </div>
 
@@ -188,7 +190,7 @@ export default function PairPatientModal({ isOpen, onClose, onPatientLinked, use
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 px-4 rounded-xl text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3 px-4 rounded-full text-xs sm:text-sm font-bold bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] font-heading shadow-[0_4px_14px_rgba(63,182,173,0.3)] hover:shadow-[0_8px_20px_rgba(63,182,173,0.45)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.98]"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>{loading ? 'Creating...' : 'Create & Generate Care Code'}</span>

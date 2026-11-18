@@ -2,17 +2,10 @@ import React, { useState, useEffect } from 'react';
 import {
   TrendingUp,
   AlertTriangle,
-  FileText,
   Plus,
-  Calendar,
   Clock,
   Pill,
-  User,
-  CheckCircle2,
   XCircle,
-  Package,
-  Layers,
-  ChevronRight,
   Trash2
 } from 'lucide-react';
 import api from '../services/api';
@@ -123,38 +116,38 @@ export default function FamilyView({ patient, user }) {
   if (loading) {
     return (
       <div className="py-12 text-center text-slate-500 flex flex-col items-center">
-        <div className="w-8 h-8 border-3 border-teal-600 border-t-transparent rounded-full animate-spin mb-3" />
-        <p className="text-sm font-semibold">Loading family adherence data & prescription analytics...</p>
+        <div className="w-8 h-8 border-3 border-[#3fb6ad] border-t-transparent rounded-full animate-spin mb-3" />
+        <p className="text-sm font-semibold font-heading">Loading family adherence data...</p>
       </div>
     );
   }
 
-  const weeklyRate = adherenceData?.weeklyAdherence ?? 0;
+  const weeklyRate = Math.round(adherenceData?.adherencePercentage ?? adherenceData?.weeklyAdherence ?? 0);
   const lowStockAlerts = adherenceData?.lowStockAlerts || [];
-  const skippedFeed = adherenceData?.skippedDosesFeed || [];
-  const dailyTrends = adherenceData?.dailyTrends || [];
+  const skippedFeed = adherenceData?.skippedFeed || adherenceData?.skippedDosesFeed || [];
+  const dailyTrends = adherenceData?.dailyStats || adherenceData?.dailyTrends || [];
 
   return (
     <div className="space-y-6">
-      {/* Navigation Sub-Tabs */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-        <div className="flex items-center gap-2">
+      {/* Navigation Sub-Tabs (TheCarePal Pill Style) */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6ecf1] pb-3">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-full">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all font-heading ${
               activeTab === 'overview'
-                ? 'bg-teal-700 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200'
+                ? 'bg-[#101820] text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Adherence & Analytics
           </button>
           <button
             onClick={() => setActiveTab('medicines')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 font-heading ${
               activeTab === 'medicines'
-                ? 'bg-teal-700 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200'
+                ? 'bg-[#101820] text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <span>Medicines ({medicines.length})</span>
@@ -164,21 +157,21 @@ export default function FamilyView({ patient, user }) {
           </button>
           <button
             onClick={() => setActiveTab('handovers')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all font-heading ${
               activeTab === 'handovers'
-                ? 'bg-teal-700 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200'
+                ? 'bg-[#101820] text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Shift Handovers
           </button>
         </div>
 
-        {/* Quick Action: Add Medicine */}
+        {/* Quick Action: Add Medicine in Signature TheCarePal Teal Button */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsAddFormOpen(!isAddFormOpen)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-teal-600 text-white hover:bg-teal-700 transition-colors shadow-xs"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] transition-all shadow-[0_4px_14px_rgba(63,182,173,0.3)] hover:shadow-[0_8px_20px_rgba(63,182,173,0.45)] font-heading active:scale-[0.98]"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Medicine</span>
@@ -188,21 +181,21 @@ export default function FamilyView({ patient, user }) {
 
       {/* Low Stock Warning Banner */}
       {lowStockAlerts.length > 0 && (
-        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 flex items-start gap-3 shadow-xs">
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 flex items-start gap-3 shadow-[0_2px_8px_rgba(217,119,6,0.08)]">
           <div className="p-1.5 bg-amber-200/80 rounded-xl text-amber-800 mt-0.5 shrink-0">
             <AlertTriangle className="w-5 h-5 text-amber-700" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-xs sm:text-sm font-bold text-amber-900">
+            <h4 className="text-xs sm:text-sm font-bold text-amber-900 font-heading">
               Low Stock Warning: Refill Needed
             </h4>
             <div className="mt-1 space-y-1">
               {lowStockAlerts.map((item) => (
-                <div key={item.id} className="text-xs text-amber-800 flex items-center justify-between">
+                <div key={item.id || item.medicineId} className="text-xs text-amber-800 flex items-center justify-between">
                   <span>
                     • <strong className="font-semibold">{item.name} ({item.strength})</strong>: Only {item.currentStock} units remaining (runs out in ~{item.daysRemaining} days)
                   </span>
-                  <span className="text-[11px] font-bold bg-amber-200 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-bold bg-amber-200 px-2.5 py-0.5 rounded-full font-heading">
                     Refill Soon
                   </span>
                 </div>
@@ -214,12 +207,12 @@ export default function FamilyView({ patient, user }) {
 
       {/* Add Medicine Inline Form */}
       {isAddFormOpen && (
-        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-teal-200 shadow-sm animate-in fade-in duration-200">
+        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#3fb6ad]/40 shadow-[0_2px_8px_rgba(0,0,0,0.06)] animate-in fade-in duration-200">
           <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
-            <h3 className="text-sm font-bold text-slate-800">Add New Prescribed Medication</h3>
+            <h3 className="text-sm font-bold text-[#101820] font-heading">Add New Prescribed Medication</h3>
             <button
               onClick={() => setIsAddFormOpen(false)}
-              className="text-xs text-slate-400 hover:text-slate-600"
+              className="text-xs text-slate-400 hover:text-slate-600 font-semibold"
             >
               ✕ Close
             </button>
@@ -233,59 +226,59 @@ export default function FamilyView({ patient, user }) {
 
           <form onSubmit={handleCreateMedicine} className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Medicine Name</label>
+              <label className="block font-bold text-slate-700 mb-1 font-heading">Medicine Name</label>
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g. Pantoprazole"
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#3fb6ad] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Strength</label>
+              <label className="block font-bold text-slate-700 mb-1 font-heading">Strength</label>
               <input
                 type="text"
                 required
                 value={formData.strength}
                 onChange={(e) => setFormData({ ...formData, strength: e.target.value })}
                 placeholder="e.g. 40mg"
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#3fb6ad] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Dose Unit</label>
+              <label className="block font-bold text-slate-700 mb-1 font-heading">Dose Unit</label>
               <input
                 type="text"
                 required
                 value={formData.dose}
                 onChange={(e) => setFormData({ ...formData, dose: e.target.value })}
                 placeholder="e.g. 1 tablet"
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#3fb6ad] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Scheduled Times (HH:mm, comma-separated)</label>
+              <label className="block font-bold text-slate-700 mb-1 font-heading">Scheduled Times (HH:mm, comma-separated)</label>
               <input
                 type="text"
                 required
                 value={formData.times}
                 onChange={(e) => setFormData({ ...formData, times: e.target.value })}
                 placeholder="e.g. 08:00, 20:00"
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:outline-none font-mono"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#3fb6ad] focus:outline-none font-mono"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Food Timing</label>
+              <label className="block font-bold text-slate-700 mb-1 font-heading">Food Timing</label>
               <select
                 value={formData.food}
                 onChange={(e) => setFormData({ ...formData, food: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#3fb6ad] focus:outline-none"
               >
                 <option value="after">After Food</option>
                 <option value="before">Before Food</option>
@@ -294,36 +287,36 @@ export default function FamilyView({ patient, user }) {
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Current Stock (units)</label>
+              <label className="block font-bold text-slate-700 mb-1 font-heading">Current Stock (units)</label>
               <input
                 type="number"
                 min={0}
                 required
                 value={formData.currentStock}
                 onChange={(e) => setFormData({ ...formData, currentStock: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#3fb6ad] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Start Date</label>
+              <label className="block font-bold text-slate-700 mb-1 font-heading">Start Date</label>
               <input
                 type="date"
                 required
                 value={formData.startDate}
                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#3fb6ad] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">End Date</label>
+              <label className="block font-bold text-slate-700 mb-1 font-heading">End Date</label>
               <input
                 type="date"
                 required
                 value={formData.endDate}
                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#3fb6ad] focus:outline-none"
               />
             </div>
 
@@ -331,14 +324,14 @@ export default function FamilyView({ patient, user }) {
               <button
                 type="button"
                 onClick={() => setIsAddFormOpen(false)}
-                className="py-2 px-4 rounded-xl text-slate-600 bg-slate-100 font-bold hover:bg-slate-200"
+                className="py-2 px-4 rounded-full text-slate-600 bg-slate-100 font-bold hover:bg-slate-200"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submittingMed}
-                className="py-2 px-5 rounded-xl text-white bg-teal-600 font-bold hover:bg-teal-700 shadow-xs"
+                className="py-2 px-5 rounded-full text-[#04302c] bg-[#3fb6ad] font-bold hover:bg-[#37a79e] shadow-[0_4px_14px_rgba(63,182,173,0.3)] font-heading"
               >
                 {submittingMed ? 'Saving...' : 'Add Medicine'}
               </button>
@@ -351,9 +344,8 @@ export default function FamilyView({ patient, user }) {
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* Adherence Hero Card */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200">
+          <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-[#e6ecf1]">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-              
               {/* Adherence Progress Ring & Score */}
               <div className="flex items-center gap-5">
                 <div className="relative flex items-center justify-center">
@@ -370,7 +362,7 @@ export default function FamilyView({ patient, user }) {
                       cx="56"
                       cy="56"
                       r="46"
-                      stroke={weeklyRate >= 85 ? '#16A34A' : weeklyRate >= 70 ? '#D97706' : '#DC2626'}
+                      stroke={weeklyRate >= 85 ? '#3fb6ad' : weeklyRate >= 70 ? '#D97706' : '#DC2626'}
                       strokeWidth="10"
                       strokeDasharray={289}
                       strokeDashoffset={289 - (289 * weeklyRate) / 100}
@@ -380,22 +372,22 @@ export default function FamilyView({ patient, user }) {
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span className="text-xl sm:text-2xl font-extrabold text-slate-800 tracking-tight">
+                    <span className="text-xl sm:text-2xl font-extrabold text-[#101820] tracking-tight font-heading">
                       {weeklyRate}%
                     </span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Adherence</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase font-heading">Adherence</span>
                   </div>
                 </div>
 
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <TrendingUp className="w-4 h-4 text-emerald-600" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <TrendingUp className="w-4 h-4 text-[#3fb6ad]" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400 font-heading">
                       7-Day Adherence Score
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 mt-0.5">
-                    {weeklyRate >= 90 ? 'Excellent Medication Compliance' : weeklyRate >= 75 ? 'Good Routine Adherence' : 'Needs Immediate Attention'}
+                  <h3 className="text-lg font-bold text-[#101820] mt-0.5 font-heading">
+                    {weeklyRate >= 90 ? 'Excellent Medication Routine' : weeklyRate >= 75 ? 'Good Routine Adherence' : 'Needs Immediate Attention'}
                   </h3>
                   <p className="text-xs text-slate-500 mt-1 max-w-sm">
                     {weeklyRate >= 90
@@ -408,60 +400,60 @@ export default function FamilyView({ patient, user }) {
               {/* Weekly Quick Metrics */}
               <div className="grid grid-cols-3 sm:grid-cols-1 gap-2.5 border-t sm:border-t-0 sm:border-l border-slate-100 pt-4 sm:pt-0 sm:pl-6">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Given Doses</span>
-                  <div className="text-base font-extrabold text-emerald-600">
-                    {adherenceData?.summary?.totalGiven || 0}
+                  <span className="text-[10px] font-bold text-slate-400 uppercase font-heading">Given Doses</span>
+                  <div className="text-base font-extrabold text-[#3fb6ad] font-heading">
+                    {adherenceData?.totalGiven ?? adherenceData?.summary?.totalGiven ?? 0}
                   </div>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Skipped Doses</span>
-                  <div className="text-base font-extrabold text-red-600">
-                    {adherenceData?.summary?.totalSkipped || 0}
+                  <span className="text-[10px] font-bold text-slate-400 uppercase font-heading">Skipped Doses</span>
+                  <div className="text-base font-extrabold text-red-600 font-heading">
+                    {adherenceData?.totalSkipped ?? adherenceData?.summary?.totalSkipped ?? 0}
                   </div>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Pending Today</span>
-                  <div className="text-base font-extrabold text-amber-600">
-                    {adherenceData?.summary?.totalPending || 0}
+                  <span className="text-[10px] font-bold text-slate-400 uppercase font-heading">Total Slots</span>
+                  <div className="text-base font-extrabold text-[#101820] font-heading">
+                    {adherenceData?.totalScheduled ?? adherenceData?.summary?.totalScheduled ?? 0}
                   </div>
                 </div>
               </div>
-
             </div>
 
             {/* 7-Day Completion Bar Chart */}
             <div className="mt-8 pt-6 border-t border-slate-100">
-              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4">
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4 font-heading">
                 Daily Completion Trends (Past 7 Days)
               </h4>
 
               <div className="grid grid-cols-7 gap-2 sm:gap-3 text-center">
                 {dailyTrends.map((day) => {
-                  const heightPct = Math.max(15, day.adherenceRate);
-                  const isHealthy = day.adherenceRate >= 85;
-                  const isModerate = day.adherenceRate >= 70 && day.adherenceRate < 85;
+                  const rate = day.adherenceRate ?? day.percentage ?? 0;
+                  const heightPct = Math.max(15, rate);
+                  const isHealthy = rate >= 85;
+                  const isModerate = rate >= 70 && rate < 85;
 
                   return (
                     <div key={day.date} className="flex flex-col items-center">
-                      <span className="text-[10px] font-bold text-slate-600 mb-1">{day.adherenceRate}%</span>
-                      
+                      <span className="text-[10px] font-bold text-slate-600 mb-1 font-heading">{rate}%</span>
+
                       {/* Bar Container */}
                       <div className="w-full bg-slate-100 h-24 rounded-xl p-1 flex flex-col justify-end">
                         <div
                           style={{ height: `${heightPct}%` }}
                           className={`w-full rounded-lg transition-all duration-500 ${
                             isHealthy
-                              ? 'bg-emerald-500'
+                              ? 'bg-[#3fb6ad]'
                               : isModerate
                               ? 'bg-amber-500'
                               : 'bg-red-500'
                           }`}
-                          title={`${day.dayName}: ${day.given}/${day.scheduled} doses given`}
+                          title={`${day.dayName || day.label}: ${day.given}/${day.scheduled} doses given`}
                         />
                       </div>
 
-                      <span className="text-xs font-bold text-slate-700 mt-2">{day.dayName}</span>
-                      <span className="text-[10px] text-slate-400 font-medium">{day.displayDate}</span>
+                      <span className="text-xs font-bold text-[#101820] mt-2 font-heading">{day.dayName || day.label?.split(',')[0]}</span>
+                      <span className="text-[10px] text-slate-400 font-medium">{day.displayDate || ''}</span>
                     </div>
                   );
                 })}
@@ -470,15 +462,15 @@ export default function FamilyView({ patient, user }) {
           </div>
 
           {/* Skipped Doses Feed */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200">
+          <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-[#e6ecf1]">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <div className="flex items-center gap-2">
                 <XCircle className="w-5 h-5 text-red-600" />
-                <h3 className="text-sm sm:text-base font-bold text-slate-800">
+                <h3 className="text-sm sm:text-base font-bold text-[#101820] font-heading">
                   Skipped Doses Feed & Caregiver Observations
                 </h3>
               </div>
-              <span className="text-xs font-bold text-slate-500">
+              <span className="text-xs font-bold text-slate-500 font-heading">
                 {skippedFeed.length} recorded {skippedFeed.length === 1 ? 'event' : 'events'}
               </span>
             </div>
@@ -500,8 +492,8 @@ export default function FamilyView({ patient, user }) {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-800 text-sm">
-                            {item.medicineName} ({item.strength})
+                          <span className="font-bold text-slate-800 text-sm font-heading">
+                            {item.medicineName} {item.strength ? `(${item.strength})` : ''}
                           </span>
                           <span className="text-[11px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-200">
                             {item.scheduledDate} at {item.scheduledTime}
@@ -514,8 +506,8 @@ export default function FamilyView({ patient, user }) {
                     </div>
 
                     <div className="text-left sm:text-right text-[11px] text-slate-500 shrink-0">
-                      <div>Logged by <strong className="text-slate-700">{item.caregiver}</strong></div>
-                      <div>{new Date(item.loggedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                      <div>Logged by <strong className="text-slate-700">{item.caregiver || item.loggedBy}</strong></div>
+                      <div>{item.loggedAt ? new Date(item.loggedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
                     </div>
                   </div>
                 ))}
@@ -527,10 +519,10 @@ export default function FamilyView({ patient, user }) {
 
       {/* Medicines Catalog Tab */}
       {activeTab === 'medicines' && (
-        <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200">
+        <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-[#e6ecf1]">
           <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
             <div>
-              <h3 className="text-base font-bold text-slate-800">Prescribed Medicines</h3>
+              <h3 className="text-base font-bold text-[#101820] font-heading">Prescribed Medicines</h3>
               <p className="text-xs text-slate-500">Active medications, daily schedules and inventory tracking</p>
             </div>
           </div>
@@ -545,13 +537,13 @@ export default function FamilyView({ patient, user }) {
                 <div
                   key={med._id}
                   className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
-                    isLow ? 'bg-amber-50/40 border-amber-300' : 'bg-white border-slate-200 hover:border-slate-300'
+                    isLow ? 'bg-amber-50/40 border-amber-300' : 'bg-white border-[#e6ecf1] hover:border-[#3fb6ad]/40 shadow-[0_2px_8px_rgba(0,0,0,0.04)]'
                   }`}
                 >
                   <div>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
-                        <h4 className="text-base font-bold text-slate-900">{med.name}</h4>
+                        <h4 className="text-base font-bold text-[#101820] font-heading">{med.name}</h4>
                         <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
                           {med.strength}
                         </span>
@@ -572,7 +564,7 @@ export default function FamilyView({ patient, user }) {
 
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {med.times.map((t) => (
-                        <span key={t} className="px-2 py-0.5 rounded-md bg-teal-50 border border-teal-200 text-teal-800 text-[11px] font-mono font-bold">
+                        <span key={t} className="px-2.5 py-0.5 rounded-full bg-[#3fb6ad]/10 border border-[#3fb6ad]/30 text-[#04302c] text-[11px] font-mono font-bold">
                           {t}
                         </span>
                       ))}
@@ -583,7 +575,7 @@ export default function FamilyView({ patient, user }) {
                     <span className="text-slate-500">
                       Stock: <strong className="text-slate-800 font-bold">{med.currentStock} units</strong>
                     </span>
-                    <span className={`font-bold px-2 py-0.5 rounded-full text-[10px] ${
+                    <span className={`font-bold px-2.5 py-0.5 rounded-full text-[10px] font-heading ${
                       isLow ? 'bg-amber-100 text-amber-900' : 'bg-emerald-50 text-emerald-700'
                     }`}>
                       {isLow ? `Runs out in ~${daysLeft} days` : `~${daysLeft} days supply`}
