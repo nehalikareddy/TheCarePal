@@ -301,7 +301,7 @@ router.post('/:id/requests/:userId/approve', auth, async (req, res) => {
     const io = req.app.get('io');
     if (io) {
       // Emit accessApproved to target caregiver's private room with full patient object
-      io.to(`user_${userId}`).emit('accessApproved', {
+      io.to(`user_${String(req.params.userId)}`).emit('accessApproved', {
         patient,
         patientId: patient._id,
         patientName: patient.name,
@@ -311,7 +311,7 @@ router.post('/:id/requests/:userId/approve', auth, async (req, res) => {
       // Emit careTeamUpdated to patient room
       io.to(`patient_${patient._id}`).emit('careTeamUpdated', {
         patientId: patient._id,
-        approvedUserId: userId,
+        approvedUserId: String(req.params.userId),
         approvedUser: {
           _id: targetUser._id,
           name: targetUser.name,
@@ -355,7 +355,7 @@ router.post('/:id/requests/:userId/reject', auth, async (req, res) => {
 
     const io = req.app.get('io');
     if (io) {
-      io.to(`user_${userId}`).emit('accessRejected', {
+      io.to(`user_${String(req.params.userId)}`).emit('accessRejected', {
         patientId: patient._id,
         patientName: patient.name
       });
@@ -414,11 +414,11 @@ router.delete('/:id/members/:userId', auth, async (req, res) => {
     if (io) {
       io.to(`patient_${patient._id}`).emit('accessRevoked', {
         patientId: patient._id,
-        revokedUserId: userId
+        revokedUserId: String(req.params.userId)
       });
-      io.to(`user_${userId}`).emit('accessRevoked', {
+      io.to(`user_${String(req.params.userId)}`).emit('accessRevoked', {
         patientId: patient._id,
-        revokedUserId: userId
+        revokedUserId: String(req.params.userId)
       });
     }
 

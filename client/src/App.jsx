@@ -129,8 +129,17 @@ export default function App() {
   // 4. Setup Socket.IO for Real-Time Sync & Direct User Alerts
   useEffect(() => {
     const socket = initSocket();
+    const currentUserId = user?._id || user?.id;
 
-    const onConnect = () => setIsSocketConnected(true);
+    const onConnect = () => {
+      setIsSocketConnected(true);
+      if (currentUserId) {
+        socket.emit('joinUserRoom', String(currentUserId));
+      }
+      if (currentPatient?._id) {
+        joinPatientRoom(currentPatient._id);
+      }
+    };
     const onDisconnect = () => setIsSocketConnected(false);
 
     socket.on('connect', onConnect);
@@ -141,13 +150,13 @@ export default function App() {
     }
 
     // Join patient room
-    if (currentPatient) {
+    if (currentPatient?._id) {
       joinPatientRoom(currentPatient._id);
     }
 
-    // Join user's private notification room
-    if (user?._id) {
-      joinUserRoom(user._id);
+    // Join user's private notification room immediately when user is set
+    if (currentUserId) {
+      socket.emit('joinUserRoom', String(currentUserId));
     }
 
     // Listen for schedule & handover updates
@@ -175,19 +184,20 @@ export default function App() {
 
     // Caretaker View: Family approved caretaker access
     const handleAccessApproved = (data) => {
-      if (data.patient) {
+      const approvedPatient = data.patient || { _id: data.patientId, name: data.patientName };
+      if (approvedPatient && approvedPatient._id) {
         setPatients((prev) => {
-          const exists = prev.find((p) => String(p._id) === String(data.patient._id));
-          return exists ? prev : [...prev, data.patient];
+          const exists = prev.find((p) => String(p._id) === String(approvedPatient._id));
+          return exists ? prev : [...prev, approvedPatient];
         });
-        setCurrentPatient(data.patient);
+        setCurrentPatient(approvedPatient);
       }
       setPendingApprovals((prev) =>
         prev.filter((p) => String(p._id) !== String(data.patientId || data.patient?._id))
       );
       setLiveAlert({
         type: 'success',
-        message: `Access approved! You can now view ${data.patientName || data.patient?.name}'s schedule.`,
+        message: `Access approved! You can now view ${data.patientName || data.patient?.name || 'the patient'}'s schedule.`,
       });
       setRefreshTrigger((prev) => prev + 1);
     };
@@ -205,7 +215,7 @@ export default function App() {
 
     // Access revoked by family
     const handleAccessRevoked = (data) => {
-      if (String(data.revokedUserId) === String(user?._id)) {
+      if (String(data.revokedUserId) === String(currentUserId)) {
         setLiveAlert({
           type: 'revoked',
           message: 'Your access to this patient was revoked by the family.',
@@ -252,11 +262,11 @@ export default function App() {
       socket.off('accessRejected', handleAccessRejected);
       socket.off('accessRevoked', handleAccessRevoked);
       socket.off('patientUpdated', handlePatientUpdated);
-      if (currentPatient) {
+      if (currentPatient?._id) {
         leavePatientRoom(currentPatient._id);
       }
-      if (user?._id) {
-        leaveUserRoom(user._id);
+      if (currentUserId) {
+        socket.emit('leaveUserRoom', String(currentUserId));
       }
     };
   }, [currentPatient, user]);
@@ -294,6 +304,61 @@ export default function App() {
 
     return () => clearInterval(interval);
   }, [currentPatient]);
+
+  // 6. 5-Second Auto-Sync While Pending for Caretakers
+  useEffect(() => {
+    if (user?.role !== 'caretaker' || !pendingApprovals || pendingApprovals.length === 0) {
+      return;
+    }
+
+    const intervalId = setInterval(async () => {
+      try {
+        const [patRes, pendingRes] = await Promise.all([
+          api.get('/patients'),
+          api.get('/patients/my-pending'),
+        ]);
+
+        const updatedPatients = patRes.data?.patients || [];
+        const updatedPending = pendingRes.data?.pending || [];
+
+        // Check if a previously pending patient now appears in /api/patients
+        const newlyApprovedPatient = updatedPatients.find((p) =>
+          pendingApprovals.some((pending) => String(pending._id) === String(p._id))
+        );
+
+        if (newlyApprovedPatient) {
+          setPatients(updatedPatients);
+          setCurrentPatient(newlyApprovedPatient);
+          setPendingApprovals((prev) =>
+            prev.filter((pending) => String(pending._id) !== String(newlyApprovedPatient._id))
+          );
+          setLiveAlert({
+            type: 'success',
+            message: `Access approved! You can now view ${newlyApprovedPatient.name}'s schedule.`,
+          });
+          setRefreshTrigger((prev) => prev + 1);
+        } else {
+          // If a pending request was declined or removed by family
+          const rejectedPatients = pendingApprovals.filter(
+            (prevP) =>
+              !updatedPending.some((p) => String(p._id) === String(prevP._id)) &&
+              !updatedPatients.some((p) => String(p._id) === String(prevP._id))
+          );
+          if (rejectedPatients.length > 0) {
+            setLiveAlert({
+              type: 'warning',
+              message: `Your access request for ${rejectedPatients[0].name || 'the patient'} was declined by the family.`,
+            });
+          }
+          setPendingApprovals(updatedPending);
+        }
+      } catch (err) {
+        // Quiet fail on background sync interval
+      }
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [user?.role, pendingApprovals]);
 
   const handleLoginSuccess = async (userData, newToken) => {
     setUser(userData);

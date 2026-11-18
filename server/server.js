@@ -80,13 +80,13 @@ io.on('connection', (socket) => {
 
   socket.on('joinUserRoom', (userId) => {
     if (userId) {
-      socket.join(`user_${userId}`);
+      socket.join(`user_${String(userId)}`);
     }
   });
 
   socket.on('leaveUserRoom', (userId) => {
     if (userId) {
-      socket.leave(`user_${userId}`);
+      socket.leave(`user_${String(userId)}`);
     }
   });
 });

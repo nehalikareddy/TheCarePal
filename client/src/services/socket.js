@@ -36,14 +36,14 @@ export function leavePatientRoom(patientId) {
 export function joinUserRoom(userId) {
   const s = getSocket();
   if (s && userId) {
-    s.emit('joinUserRoom', userId);
+    s.emit('joinUserRoom', String(userId));
   }
 }
 
 export function leaveUserRoom(userId) {
   const s = getSocket();
   if (s && userId) {
-    s.emit('leaveUserRoom', userId);
+    s.emit('leaveUserRoom', String(userId));
   }
 }
 
