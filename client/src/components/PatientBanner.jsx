@@ -3,7 +3,6 @@ import {
   HeartHandshake,
   Copy,
   Check,
-  PlusCircle,
   Users,
   RefreshCw,
   UserMinus,
@@ -227,6 +226,11 @@ export default function PatientBanner({
                     Location: <span className="text-slate-200">{patient.address}</span>
                   </div>
                 )}
+                {patient.allergies && (
+                  <div>
+                    Allergies: <span className="text-rose-300 font-medium">{patient.allergies}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -292,16 +296,6 @@ export default function PatientBanner({
                 )}
               </button>
             )}
-
-            {/* Add / Enter Code Pill Button */}
-            <button
-              onClick={onOpenPairModal}
-              className="flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-full bg-[#3fb6ad] text-[#04302c] hover:bg-[#37a79e] transition-all shadow-[0_4px_14px_rgba(63,182,173,0.25)] font-heading min-h-[44px] active:scale-[0.98]"
-              title="Link another patient using a 6-digit Care Code"
-            >
-              <PlusCircle className="w-4 h-4 shrink-0" />
-              <span className="truncate">{userRole === 'caretaker' ? 'Enter Code' : 'Add Patient'}</span>
-            </button>
           </div>
         </div>
       </div>
