@@ -7,8 +7,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Roboto Flex"', '"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        heading: ['"Lexend"', 'sans-serif'],
+        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        heading: ['"Plus Jakarta Sans"', '"Inter"', 'sans-serif'],
+        display: ['"Fraunces"', 'Georgia', 'serif'],
         marker: ['"Permanent Marker"', 'cursive'],
       },
       colors: {
