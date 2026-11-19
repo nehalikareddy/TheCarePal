@@ -22,6 +22,7 @@ import {
   sendBrowserNotification,
   playNotificationChime,
   subscribeToWebPush,
+  unsubscribeFromWebPush,
 } from './utils/notifications';
 import {
   initAudioOnUserInteraction,
@@ -506,7 +507,12 @@ export default function App() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await unsubscribeFromWebPush(api);
+    } catch (e) {
+      console.warn('Push unsubscribe on logout failed:', e);
+    }
     localStorage.removeItem('thecarepal_token');
     localStorage.removeItem('carepal_token');
     setUser(null);

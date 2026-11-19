@@ -12,10 +12,22 @@
 | **Frontend Application** | [https://the-care-pal-amr8.vercel.app](https://the-care-pal-amr8.vercel.app) | Deployed on Vercel (Auto-deploy from `main`) |
 | **Backend REST & WebSocket API** | [https://thecarepal.onrender.com](https://thecarepal.onrender.com) | Deployed on Render Web Service |
 | **Health Check Endpoint** | [https://thecarepal.onrender.com/api/health](https://thecarepal.onrender.com/api/health) | Returns `{ status: "ok", uptime, database: "connected" }` |
-| **Active Test Patient Care Code** | **`482910`** | Patient: Ramesh Verma (74 yrs, Post-Stroke & Hypertension) |
 
 > [!NOTE]
 > **Render Cold Starts**: Because the backend is hosted on Render's free tier, the web service spins down after 15 minutes of inactivity. The first API or health-check request may take 30–50 seconds to wake up the server container and connect to MongoDB Atlas. Subsequent requests respond in milliseconds.
+
+---
+
+## 👥 Seeded 1-Click Demo Accounts
+
+For immediate evaluation without manual signup, use either of the pre-configured accounts:
+
+| Role | Email | Password | Primary Linked Patients |
+| :--- | :--- | :--- | :--- |
+| **Family Admin** | `sakethreddy@gmail.com` | `saketh` | **Raghavendra Rao** (76 yrs, Post-Stroke & Hypertension)<br>**Meenakshi Iyer** (68 yrs, Type 2 Diabetes) |
+| **Caretaker / Nurse** | `nehalikareddy@gmail.com` | `nehalika` | **Raghavendra Rao** & **Meenakshi Iyer** |
+
+*Both portals are fully responsive on mobile (iPhone/Android) and desktop.*
 
 ---
 
@@ -23,42 +35,43 @@
 
 ### 1. Dual-Role Architecture & Separation of Concerns
 Home medication management involves two distinct stakeholders with very different workflows:
-- **Family Members (Administrators):** Need high-level oversight, long-term adherence metrics, stock monitoring, care team access control, and ability to schedule/adjust prescriptions.
-- **Caretakers & Nurses (Bedside Operators):** Need a fast, distraction-free checklist grouped chronologically into **Morning (05:00–11:59)**, **Afternoon (12:00–16:59)**, and **Night (17:00–23:59)**, with large touch targets for logging doses as **Given** or **Skipped** (with required clinical reasons).
+- **Family Members (Administrators):** High-level oversight, 7-day adherence metrics, shift consistency heatmap, stock monitoring, approval-gated care team access control, and ability to schedule/adjust prescriptions.
+- **Caretakers & Nurses (Bedside Operators):** Fast, distraction-free checklist grouped chronologically into **Morning (05:00–11:59)**, **Afternoon (12:00–16:59)**, and **Night (17:00–23:59)**, with large touch targets ($\ge$ 44px) for logging doses as **Given** or **Skipped** (with required clinical reasons).
 
-### 2. 6-Digit Care Code Pairing & Rotation
-- Rather than requiring complex email invitations or cross-account authorization flows, patients are linked via a cryptographically unique 6-digit numeric **Care Code** (e.g., `482910`).
-- Caretakers enter this code once to join the patient's care team.
-- **Care Code Rotation:** Family admins can rotate the code at any time with one click. Existing caregivers remain connected, but previously shared codes are invalidated to protect patient privacy when shift workers change.
+### 2. Approval-Gated 6-Digit Care Codes & Access Control
+- Rather than exposing patient profiles immediately upon entering a code, caretakers submit a link request using a unique 6-digit **Care Code** (e.g., `275964`).
+- **Family Gatekeeper:** The family admin receives an instant real-time alert (accompanied by an audible chime) with one-click **Approve** or **Reject** actions.
+- **Code Rotation & Revocation:** Family admins can rotate the 6-digit code at any time with one click or revoke existing caregiver access immediately if shift personnel change.
 
-### 3. Real-Time Synchronization via Socket.IO
-- Socket connections join isolated rooms partitioned by `patient_${patientId}`.
-- Actions taken by a nurse at the bedside (e.g. marking a dose as given, skipping with a note, or posting a handover log) broadcast instantly to all connected family members and caregivers with zero manual page refreshes.
-- Live system alerts also notify family members the moment a new caregiver joins the care team or when access is revoked.
+### 3. Select Profile Hub
+- Multi-patient management dashboard allows family admins and roving caregivers to switch seamlessly between elder profiles.
+- Each profile card displays live age, clinical condition, active medication counts, and real-time status pills.
 
-### 4. Accidental Double-Dose Prevention
+### 4. Real-Time Synchronization via Socket.IO
+- Socket connections join isolated rooms partitioned by `patient_${patientId}` and `user_${userId}`.
+- Actions taken by a nurse at the bedside (e.g. marking a dose as given, skipping with a note, or posting a handover log) broadcast instantly to all connected family members with zero manual page refreshes.
+- Silent background refresh prevents full-component remounts or loading spinner flashes during live updates.
+
+### 5. Accidental Double-Dose Prevention
 - In home care, two caregivers or a family member and nurse might accidentally administer the same pill twice.
 - **Database Safeguard:** A strict compound unique index on `(patientId, medicineId, scheduledDate, scheduledTime)` in MongoDB rejects duplicate logs.
-- **UI Safeguard:** Once a dose is recorded as Given or Skipped, its action buttons immediately lock into a disabled state showing timestamp and caregiver signature.
+- **UI Safeguard:** Once a dose is recorded as Given or Skipped, its action buttons immediately lock into a disabled state showing the exact timestamp and caregiver signature.
 
-### 5. Accurate 7-Day Adherence Math & Edge Cases
-- When a patient has 0 scheduled doses (e.g., brand-new patient or days prior to medication start date), the adherence engine returns `adherenceRate: null` and `hasScheduledDoses: false`.
-- The UI renders a clean neutral slate ring (`--`) and empty trend tracks instead of falsely displaying 100% adherence.
-- Real scheduled periods calculate exact adherence percentages: `(givenDoses / totalScheduledSlots) * 100`.
+### 6. 7-Day Adherence Analytics & 3×7 Shift Consistency Heatmap
+- **Weekly Score & Streak Circles:** Visual 7-day streak tracker showing daily completion status. When a patient has 0 scheduled doses, the engine cleanly displays `--` rather than falsely showing 100%.
+- **3×7 Shift Consistency Heatmap:** Visual matrix tracking Morning, Afternoon, and Night shifts across the past 7 days (color-coded for full completion, partial doses, skips, or unscheduled slots), immediately identifying shift patterns or adherence gaps.
 
-### 6. Doctor's Prescription Photo Upload & Verification Lightbox
-- Family members can snap a photo or upload an image of the doctor's physical prescription during medication setup (stored directly on Cloudinary, validated $\le$ 5 MB).
-- **Family View:** Each medicine card in the Medicines tab features a "View Rx" button opening a full-screen image viewer.
-- **Nurse View:** On every scheduled dose card, nurses have a "View Rx" button to inspect the doctor's original Rx order (verifying dosage, timing, and food instructions) before bedside administration.
+### 7. VAPID Web Push Notifications (Tab-Closed Background Delivery)
+- Full Web Push implementation using VAPID keys and a dedicated Service Worker (`/sw.js`).
+- Background dose reminder scheduler runs every 60 seconds on the server, sending notifications directly to linked devices even when the browser tab is closed.
+- Automatic unsubscription cleans up endpoint registrations on logout.
 
-### 7. Shift Handover Notes
+### 8. Doctor's Prescription Photo Upload & Verification Lightbox
+- Family members can upload an image of the doctor's physical prescription during medication setup (stored on Cloudinary, validated $\le$ 5 MB).
+- Both family and caretakers can inspect the original prescription via an inline lightbox viewer before administering medication.
+
+### 9. Shift Handover Notes
 - Caregivers and family can log timestamped shift transition notes (Day $\rightarrow$ Night or Night $\rightarrow$ Day) with vital signs, observations, and instructions, synchronized in real time.
-
-### 8. Mobile-First Responsive Design (360px – 430px)
-- Tested across small mobile viewports (iPhone SE, Pixel 7, iPhone 14/15 Pro Max).
-- `text-base sm:text-sm` (16px) on all form inputs prevents iOS Safari from automatically zooming in on focus.
-- Touch targets strictly meet $\ge$ 44px guidelines.
-- `overflow-x-hidden` prevents accidental horizontal scrolling on mobile.
 
 ---
 
@@ -67,13 +80,15 @@ Home medication management involves two distinct stakeholders with very differen
 | Layer | Technology | Purpose |
 | :--- | :--- | :--- |
 | **Frontend Framework** | React 18, Vite | High-performance SPA with fast HMR |
-| **Styling & Icons** | Tailwind CSS, Lucide React | Mobile-first utility styling, clean SVG iconography |
+| **Styling & Fonts** | Tailwind CSS, Plus Jakarta Sans, Inter | Mobile-first utility styling, clean typography |
+| **Icons** | Lucide React | Crisp SVG iconography |
 | **Real-Time Layer** | Socket.IO Client | Bi-directional WebSocket communication |
+| **Background Push** | Service Worker, Web Push API (VAPID) | Background dose alarms when browser tab is closed |
+| **Audio** | Web Audio API (Synthesized Chimes) | Instant feedback for dose reminders and approvals |
 | **Image Hosting** | Cloudinary | Direct image upload and CDN delivery for prescription orders |
 | **Backend Runtime** | Node.js, Express | RESTful API server and WebSocket broker |
 | **Database** | MongoDB Atlas (Mongoose) | Managed cloud document store with indexing |
 | **Authentication** | JWT (jsonwebtoken), bcryptjs | Stateless token auth with password hashing |
-| **Alerts & Sound** | Browser Web Notification & Web Audio API | Scheduled reminder chimes and notifications |
 
 ---
 
@@ -82,13 +97,12 @@ Home medication management involves two distinct stakeholders with very differen
 ### Prerequisites
 - Node.js (v18 or higher)
 - npm (v9 or higher)
-- Free MongoDB Atlas URI (or local MongoDB daemon)
-- Cloudinary account (optional, for prescription photo uploads)
+- MongoDB Atlas URI (or local MongoDB daemon)
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/thecarepal/medsync.git
-cd "The CarePal"
+git clone https://github.com/nehalikareddy/thecarepal.git
+cd thecarepal
 ```
 
 ### 2. Backend Setup
@@ -103,9 +117,12 @@ PORT=5000
 MONGODB_URI=your_mongodb_atlas_connection_string
 JWT_SECRET=your_jwt_secret_key_here
 CLIENT_URL=http://localhost:5173
+VAPID_PUBLIC_KEY=your_vapid_public_key
+VAPID_PRIVATE_KEY=your_vapid_private_key
+VAPID_SUBJECT=https://the-care-pal-amr8.vercel.app
 ```
 
-Seed initial data (creates patient Ramesh Verma, code `482910`, medicines & past 7 days logs):
+Seed initial demo data:
 ```bash
 npm run seed
 ```
@@ -124,7 +141,7 @@ npm install
 
 Create `client/.env`:
 ```env
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:5000
 VITE_SOCKET_URL=http://localhost:5000
 VITE_CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
 VITE_CLOUDINARY_UPLOAD_PRESET=carepal_prescriptions
@@ -149,11 +166,16 @@ npm run build
 - `POST /api/auth/register` — Register a new family member or caretaker
 - `POST /api/auth/login` — Login and receive JWT token
 - `GET /api/auth/me` — Retrieve current authenticated user profile
+- `PUT /api/auth/profile` — Update name, phone, emergency contact, or avatar
 
-### Patients (`/api/patients`)
+### Patients & Care Team (`/api/patients`)
 - `GET /api/patients` — List user's linked patients
 - `POST /api/patients` — Create patient profile (auto-generates unique 6-digit Care Code)
-- `POST /api/patients/join` — Caretaker pairs with patient using 6-digit Care Code
+- `POST /api/patients/join` — Caretaker requests to pair with patient using Care Code
+- `GET /api/patients/my-pending` — List caretaker's pending approval requests
+- `GET /api/patients/:id/pending-requests` — List pending caretaker requests for a patient (family only)
+- `POST /api/patients/:id/requests/:requestId/approve` — Approve caretaker access (family only)
+- `POST /api/patients/:id/requests/:requestId/reject` — Reject caretaker request (family only)
 - `GET /api/patients/:id/members` — List all linked family members and caregivers
 - `DELETE /api/patients/:id/members/:userId` — Revoke a caregiver's access (family only)
 - `POST /api/patients/:id/rotate-code` — Regenerate a new unique 6-digit Care Code (family only)
@@ -161,27 +183,32 @@ npm run build
 ### Daily Schedule & Dosage Logs (`/api/schedule`, `/api/doses`)
 - `GET /api/schedule/today/:patientId` — Fetch today's grouped doses (Morning / Afternoon / Night)
 - `POST /api/doses/log` — Record a dose as `given` or `skipped` (with reasonText)
-- `GET /api/adherence/weekly/:patientId` — Compute 7-day adherence rate, daily trends, and low-stock alerts
+- `GET /api/adherence/weekly/:patientId` — Compute 7-day adherence rate, shift consistency matrix, and low-stock alerts
 
 ### Prescriptions & Handovers (`/api/medicines`, `/api/handovers`)
 - `GET /api/medicines/patient/:patientId` — List active medications
-- `POST /api/medicines` — Add new medicine with timing, stock, and optional prescriptionUrl
+- `POST /api/medicines` — Add new medicine with timing, stock, and prescription URL
 - `DELETE /api/medicines/:id` — Delete a medicine
 - `GET /api/handovers/patient/:patientId` — Retrieve shift handover notes
 - `POST /api/handovers` — Submit shift handover log
+
+### Web Push Notifications (`/api/notifications`)
+- `GET /api/notifications/vapid-public-key` — Retrieve backend VAPID public key
+- `POST /api/notifications/subscribe` — Register browser push subscription
+- `POST /api/notifications/unsubscribe` — Deregister push subscription on logout
 
 ---
 
 ## 🔮 What I Would Build Next
 
-1. **Native Web Push Notifications (Service Worker / FCM):**
-   - Implement background Web Push API so caregivers and family receive audible dosage alarms even when the browser tab is closed or the device screen is locked.
-2. **Automated AI OCR Prescription Scanner:**
-   - Integrate Gemini Vision API to automatically read uploaded doctor prescriptions and pre-fill medicine name, dosage, frequency, and instructions into the form.
-3. **SMS & WhatsApp Refill Alerts (Twilio API):**
-   - Automatically notify primary family contacts via WhatsApp when a vital medication drops below 3 days of supply.
-4. **Offline-First Synchronization (IndexedDB / PWA):**
-   - Enable full offline capability with service workers so nurses in poor-connectivity residential areas can continue logging doses; changes queue locally and reconcile automatically upon reconnection.
+1. **AI Prescription-to-Schedule Scanner (Gemini Vision API):**
+   - Directly analyze handwritten and printed prescription slips, converting medications, dosages, meal instructions, and frequencies into the standard FS-05 JSON schema with 1-click schedule population.
+2. **Allergy & Drug-Interaction Checks:**
+   - Safety engine that automatically cross-checks newly prescribed medications against the patient's recorded allergies (e.g., Penicillin) and detects adverse drug-drug interactions.
+3. **Alternate & Custom-Day Scheduling:**
+   - Support for complex non-daily regimens such as alternate-day dosing, specific days of the week, or tapering courses (e.g., corticosteroids).
+4. **Voice-to-Handover Notes (Speech-to-Text):**
+   - Hands-free audio dictation at the bedside, allowing busy caregivers to record vital shift transition notes quickly without manual typing.
 
 ---
 
@@ -189,12 +216,12 @@ npm run build
 
 This project was built with the assistance of **Google DeepMind Gemini** and the **Antigravity IDE**:
 
-- **Architecture & Schema Engineering:**
-  - Designed atomic MongoDB operations and compound unique indexes to guarantee double-dose prevention.
-  - Built room-based Socket.IO architecture for real-time synchronization between family and nurse clients.
-- **Edge-Case Resolution & Math Hardening:**
-  - Diagnosed and fixed the 0-dose 100% adherence bug by introducing nullable rates and empty UI progress tracks.
-  - Handled Cloudinary unsigned upload flows with error boundaries and responsive lightboxes.
-- **Mobile UX & Cross-Browser Optimization:**
-  - Optimized viewport behavior and input typography (`16px`) to prevent iOS Safari auto-zoom.
-  - Refactored touch targets to conform to WCAG 44px+ guidelines for bedside one-handed operation.
+- **Architecture & Security:**
+  - Implemented atomic MongoDB operations and compound unique indexes for guaranteed double-dose prevention.
+  - Architected dual-role authorization with approval-gated care codes and isolated Socket.IO rooms.
+- **Analytics & Math Hardening:**
+  - Resolved 0-dose adherence edge cases with nullable metrics and neutral state rings.
+  - Built the 3×7 shift consistency algorithm tracking completion across Morning, Afternoon, and Night windows.
+- **Mobile-First UX & Reliability:**
+  - Tailored touch targets ($\ge$ 44px) and 16px input typography to prevent iOS Safari auto-zoom.
+  - Implemented background VAPID push notifications and Service Worker listeners for tab-closed dose alerts.

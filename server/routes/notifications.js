@@ -37,4 +37,32 @@ router.post('/subscribe', auth, async (req, res) => {
   }
 });
 
+// POST /api/notifications/unsubscribe (protected by auth)
+router.post('/unsubscribe', auth, async (req, res) => {
+  try {
+    const { endpoint } = req.body;
+    if (!endpoint) {
+      return res.status(400).json({ message: 'Subscription endpoint is required' });
+    }
+
+    const userId = req.user._id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (Array.isArray(user.pushSubscriptions)) {
+      user.pushSubscriptions = user.pushSubscriptions.filter(
+        (sub) => sub && sub.endpoint !== endpoint
+      );
+      await user.save();
+    }
+
+    res.status(200).json({ message: 'Push subscription removed successfully' });
+  } catch (err) {
+    console.error('Error removing push subscription:', err);
+    res.status(500).json({ message: 'Failed to remove push subscription' });
+  }
+});
+
 module.exports = router;

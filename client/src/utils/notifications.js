@@ -140,3 +140,40 @@ export async function subscribeToWebPush(api) {
     return null;
   }
 }
+
+export async function unsubscribeFromWebPush(api) {
+  if (
+    typeof window === 'undefined' ||
+    !('serviceWorker' in navigator) ||
+    !('PushManager' in window)
+  ) {
+    return false;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    if (!registration || !registration.pushManager) {
+      return false;
+    }
+
+    const subscription = await registration.pushManager.getSubscription();
+    if (subscription) {
+      const endpoint = subscription.endpoint;
+      // Tell backend to remove subscription from user document
+      if (api && endpoint) {
+        try {
+          await api.post('/notifications/unsubscribe', { endpoint });
+        } catch (apiErr) {
+          console.warn('[WebPush] Server unsubscribe error (non-blocking):', apiErr);
+        }
+      }
+      // Unsubscribe locally in browser pushManager
+      await subscription.unsubscribe();
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.warn('[WebPush] Unsubscribe error (non-blocking):', err);
+    return false;
+  }
+}
