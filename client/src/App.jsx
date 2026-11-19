@@ -21,6 +21,7 @@ import {
   requestNotificationPermission,
   sendBrowserNotification,
   playNotificationChime,
+  subscribeToWebPush,
 } from './utils/notifications';
 import {
   initAudioOnUserInteraction,
@@ -95,6 +96,24 @@ export default function App() {
         sessionStorage.setItem(promptKey, 'true');
       }
     }
+  }, [user]);
+
+  // 1c. Register Web Push Subscription when user is logged in and notification permission is granted
+  useEffect(() => {
+    if (!user) return;
+
+    const setupPush = async () => {
+      try {
+        const perm = await requestNotificationPermission();
+        if (perm === 'granted' || (typeof Notification !== 'undefined' && Notification.permission === 'granted')) {
+          await subscribeToWebPush(api);
+        }
+      } catch (err) {
+        console.warn('Web push setup error:', err);
+      }
+    };
+
+    setupPush();
   }, [user]);
 
   // 2. Initial Authentication & Profile Load

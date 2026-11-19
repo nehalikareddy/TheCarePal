@@ -13,7 +13,8 @@ const userSchema = new mongoose.Schema({
   accountType: { type: String, enum: ['', 'self', 'family'], default: 'family' },
   relation: { type: String, default: '' },
   address: { type: String, default: '' },
-  profileCompleted: { type: Boolean, default: false }
+  profileCompleted: { type: Boolean, default: false },
+  pushSubscriptions: { type: [mongoose.Schema.Types.Mixed], default: [] }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

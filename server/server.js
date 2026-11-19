@@ -14,6 +14,8 @@ const scheduleRoutes = require('./routes/schedule');
 const doseRoutes = require('./routes/doses');
 const adherenceRoutes = require('./routes/adherence');
 const handoverRoutes = require('./routes/handovers');
+const notificationRoutes = require('./routes/notifications');
+const { startPushScheduler } = require('./utils/pushScheduler');
 const { ensureDemoSeed } = require('./utils/ensureDemoSeed');
 
 const app = express();
@@ -111,6 +113,7 @@ app.use('/api/schedule', scheduleRoutes);
 app.use('/api/doses', doseRoutes);
 app.use('/api/adherence', adherenceRoutes);
 app.use('/api/handovers', handoverRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 const PORT = process.env.PORT || 5000;
 
@@ -126,6 +129,7 @@ mongoose
     if (process.env.ENABLE_DEMO_SEED === 'true') {
       await ensureDemoSeed();
     }
+    startPushScheduler();
     server.listen(PORT, () => {
       console.log(`TheCarePal MedSync API running on port ${PORT}`);
     });
