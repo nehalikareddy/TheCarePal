@@ -808,6 +808,7 @@ export default function App() {
         user={user}
         patients={patients}
         activePatient={currentPatient}
+        onLogout={handleLogout}
         onPatientSaved={(savedPatient) => {
           setPatients((prev) => {
             const exists = prev.some((p) => String(p._id) === String(savedPatient._id));

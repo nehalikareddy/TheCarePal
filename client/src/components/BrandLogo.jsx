@@ -17,8 +17,8 @@ export default function BrandLogo({ size = 'default', showSubtitle = true, class
             className={`${imgHeight} w-auto object-contain transition-transform duration-200 hover:scale-[1.02]`}
           />
 
-          {/* MedSync Signature Pill Badge */}
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-[#3fb6ad]/15 text-[#04302c] border border-[#3fb6ad]/40 uppercase tracking-wider shadow-2xs font-heading">
+          {/* MedSync Signature Pill Badge (compact on desktop, hidden on narrow mobile so controls never clip) */}
+          <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-[#3fb6ad]/15 text-[#04302c] border border-[#3fb6ad]/40 uppercase tracking-wider shadow-2xs font-heading">
             MedSync
           </span>
         </div>

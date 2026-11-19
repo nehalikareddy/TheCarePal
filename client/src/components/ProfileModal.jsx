@@ -14,6 +14,7 @@ import {
   Phone,
   MapPin,
   Stethoscope,
+  LogOut,
 } from 'lucide-react';
 
 function getInitials(name = '') {
@@ -37,6 +38,7 @@ export default function ProfileModal({
   patients = [],
   activePatient = null,
   onPatientSaved,
+  onLogout,
 }) {
   // STRICT RULE OF HOOKS: All hooks must be defined at the very top, before any return statement.
   const [userName, setUserName] = useState(user?.name || '');
@@ -747,29 +749,46 @@ export default function ProfileModal({
           )}
 
           {/* Action Buttons */}
-          <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={saving}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs sm:text-sm font-semibold transition font-heading"
-            >
-              {isFirstTimePrompt ? 'Complete Later' : 'Cancel'}
-            </button>
-            <button
-              type="submit"
-              disabled={saving || uploading}
-              className="px-5 py-2.5 rounded-xl bg-[#3fb6ad] hover:bg-[#38a39b] text-[#04302c] text-xs sm:text-sm font-bold transition font-heading shadow-md active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Saving...</span>
-                </>
-              ) : (
-                <span>Save Profile</span>
-              )}
-            </button>
+          <div className="pt-3 flex flex-wrap items-center justify-between gap-2.5 border-t border-slate-100">
+            {onLogout && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onLogout();
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 text-xs font-bold font-heading border border-rose-200 transition active:scale-95"
+                title="Log out of this device"
+              >
+                <LogOut className="w-3.5 h-3.5 text-rose-500" />
+                <span>Log Out</span>
+              </button>
+            )}
+
+            <div className="flex items-center gap-2 ml-auto">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={saving}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs sm:text-sm font-semibold transition font-heading"
+              >
+                {isFirstTimePrompt ? 'Complete Later' : 'Cancel'}
+              </button>
+              <button
+                type="submit"
+                disabled={saving || uploading}
+                className="px-5 py-2.5 rounded-xl bg-[#3fb6ad] hover:bg-[#38a39b] text-[#04302c] text-xs sm:text-sm font-bold transition font-heading shadow-md active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <span>Save Profile</span>
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </div>

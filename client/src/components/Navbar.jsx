@@ -15,18 +15,18 @@ function getInitials(name = '') {
 export default function Navbar({ user, onLogout, isSocketConnected, onOpenProfile }) {
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-[#e6ecf1] shadow-[0_1px_2px_rgba(15,26,34,0.04)]">
-      <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 h-[60px] sm:h-[72px] flex items-center justify-between gap-1.5 sm:gap-3">
+      <div className="max-w-6xl mx-auto px-2.5 sm:px-6 lg:px-8 h-[58px] sm:h-[72px] flex items-center justify-between gap-1.5 sm:gap-3">
         {/* Brand Logo */}
         <div className="flex items-center shrink-0">
           <BrandLogo size="default" />
         </div>
 
         {/* Right Action Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
           {/* User Role Pill */}
           {user && (
             <div
-              className={`h-8 sm:h-9 inline-flex items-center justify-center px-2.5 sm:px-3.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold border shrink-0 font-heading ${
+              className={`h-8 sm:h-9 inline-flex items-center justify-center px-2 sm:px-3.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold border shrink-0 font-heading ${
                 user.role === 'family'
                   ? 'bg-blue-50 text-[#0074ff] border-blue-200'
                   : 'bg-emerald-50 text-emerald-800 border-emerald-200'
@@ -38,7 +38,7 @@ export default function Navbar({ user, onLogout, isSocketConnected, onOpenProfil
 
           {/* User Profile Pill & Labeled Logout Button */}
           {user && (
-            <div className="flex items-center gap-1.5 sm:gap-2.5 pl-1.5 sm:pl-3 border-l border-slate-200">
+            <div className="flex items-center gap-1 sm:gap-2 pl-1 sm:pl-2.5 border-l border-slate-200 shrink-0">
               {/* Clickable Profile Pill */}
               <button
                 type="button"
@@ -63,16 +63,16 @@ export default function Navbar({ user, onLogout, isSocketConnected, onOpenProfil
                 </span>
               </button>
 
-              {/* Labeled Logout Button */}
+              {/* Labeled Logout Button - ALWAYS VISIBLE */}
               <button
                 type="button"
                 onClick={onLogout}
-                className="h-8 sm:h-9 inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition shrink-0 active:scale-95"
+                className="h-8 sm:h-9 inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold border border-rose-200 sm:border-slate-200 bg-rose-50 sm:bg-white text-rose-600 sm:text-slate-700 hover:bg-rose-100 sm:hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 transition shrink-0 active:scale-95 cursor-pointer shadow-2xs"
                 title="Logout / Switch Account"
                 aria-label="Logout"
               >
-                <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-slate-500" />
-                <span className="hidden min-[400px]:inline font-heading">Logout</span>
+                <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-rose-500 sm:text-slate-500" />
+                <span className="font-heading">Logout</span>
               </button>
             </div>
           )}
