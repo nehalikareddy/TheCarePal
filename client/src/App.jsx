@@ -594,20 +594,20 @@ export default function App() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6">
         {/* Automatic Overdue Medication Watcher Banners */}
         {overdueAlerts && overdueAlerts.length > 0 && (
           <div className="space-y-2 mb-3">
             {overdueAlerts.map((alertItem) => (
               <div
                 key={alertItem.key}
-                className="py-1.5 px-3 sm:py-2 sm:px-3.5 rounded-lg bg-amber-500/10 border border-amber-500/40 text-amber-950 shadow-xs flex items-center justify-between gap-2 animate-in fade-in"
+                className="py-1.5 px-3 sm:py-2 sm:px-3.5 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-950 shadow-xs flex items-center justify-between gap-2 animate-in fade-in"
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-6 h-6 rounded-md bg-amber-500/20 text-amber-900 flex items-center justify-center shrink-0">
                     <AlertTriangle className="w-3.5 h-3.5 text-amber-800" />
                   </div>
-                  <p className="text-xs font-semibold text-amber-950 font-heading min-w-0">
+                  <p className="text-xs font-semibold text-amber-950 font-heading min-w-0 truncate">
                     {alertItem.message}
                   </p>
                 </div>
@@ -632,7 +632,7 @@ export default function App() {
           pendingRequests.map((reqItem) => (
             <div
               key={`req-${reqItem.patientId}-${reqItem.request?.userId}`}
-              className="mb-4 p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-500/40 text-slate-800 shadow-md animate-in fade-in flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+              className="mb-4 p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-500/40 text-slate-800 shadow-md animate-in fade-in flex flex-col sm:flex-row sm:items-center justify-between gap-3"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-800 flex items-center justify-center shrink-0">
@@ -656,13 +656,13 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() =>
                     handleApproveAccessRequest(reqItem.patientId, reqItem.request?.userId)
                   }
-                  className="flex-1 sm:flex-none px-4 py-2 rounded-full text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 min-h-[40px] font-heading active:scale-95 transition-all shadow-sm"
+                  className="flex-1 sm:flex-none px-4 py-2 rounded-full text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 min-h-[42px] font-heading active:scale-95 transition-all shadow-sm"
                 >
                   Approve
                 </button>
@@ -671,7 +671,7 @@ export default function App() {
                   onClick={() =>
                     handleRejectAccessRequest(reqItem.patientId, reqItem.request?.userId)
                   }
-                  className="flex-1 sm:flex-none px-4 py-2 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 min-h-[40px] font-heading active:scale-95 transition-all"
+                  className="flex-1 sm:flex-none px-4 py-2 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 min-h-[42px] font-heading active:scale-95 transition-all"
                 >
                   Reject
                 </button>
@@ -688,7 +688,7 @@ export default function App() {
                       )
                     )
                   }
-                  className="p-2 text-slate-400 hover:text-slate-600 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-full"
+                  className="p-2 text-slate-400 hover:text-slate-600 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-full shrink-0"
                   title="Dismiss alert"
                 >
                   ✕
@@ -783,8 +783,8 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="py-5 border-t border-[#e6ecf1] bg-white text-center text-xs text-slate-500 font-medium">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+      <footer className="py-4 sm:py-5 border-t border-[#e6ecf1] bg-white text-center text-xs text-slate-500 font-medium">
+        <div className="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 flex items-center justify-center">
           <p className="font-heading text-slate-700">TheCarePal MedSync • Trusted Care at Home</p>
         </div>
       </footer>

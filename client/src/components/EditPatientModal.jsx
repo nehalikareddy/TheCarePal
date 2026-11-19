@@ -366,14 +366,14 @@ export default function EditPatientModal({ isOpen, onClose, patient, onPatientUp
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs sm:text-sm font-semibold transition font-heading"
+              className="flex-1 sm:flex-initial min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs sm:text-sm font-semibold transition font-heading"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving || uploadingPhoto}
-              className="px-5 py-2.5 rounded-xl bg-[#3fb6ad] hover:bg-[#38a39b] text-[#04302c] text-xs sm:text-sm font-bold transition font-heading shadow-md active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
+              className="flex-1 sm:flex-initial min-h-[44px] justify-center px-5 py-2.5 rounded-xl bg-[#3fb6ad] hover:bg-[#38a39b] text-[#04302c] text-xs sm:text-sm font-bold transition font-heading shadow-md active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
             >
               {saving ? (
                 <>

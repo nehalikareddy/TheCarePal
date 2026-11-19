@@ -171,7 +171,7 @@ export default function CaretakerView({ patient, user }) {
             return (
               <div
                 key={dose.doseId || `${dose.medicineId}_${dose.scheduledTime}`}
-                className={`p-4 sm:p-5 rounded-2xl border transition-all ${
+                className={`p-3.5 sm:p-5 rounded-2xl border transition-all ${
                   isGiven
                     ? 'bg-emerald-50/40 border-emerald-200'
                     : isSkipped
@@ -319,11 +319,11 @@ export default function CaretakerView({ patient, user }) {
 
       {/* View Switcher: Medicines (Default) vs Handover Notes */}
       <div className="flex items-center justify-between gap-3 border-b border-[#e6ecf1] pb-3">
-        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-full text-xs">
+        <div className="grid grid-cols-2 w-full sm:w-auto sm:flex gap-1 p-1 bg-slate-100 rounded-full text-xs">
           <button
             type="button"
             onClick={() => setActiveTab('medicines')}
-            className={`px-4 py-2 min-h-[40px] rounded-full text-xs font-bold transition-all flex items-center gap-1.5 font-heading cursor-pointer ${
+            className={`w-full sm:w-auto justify-center px-4 py-2 min-h-[42px] sm:min-h-[40px] rounded-full text-xs font-bold transition-all flex items-center gap-1.5 font-heading cursor-pointer ${
               activeTab === 'medicines'
                 ? 'bg-[#101820] text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-900'
@@ -335,7 +335,7 @@ export default function CaretakerView({ patient, user }) {
           <button
             type="button"
             onClick={() => setActiveTab('handovers')}
-            className={`px-4 py-2 min-h-[40px] rounded-full text-xs font-bold transition-all flex items-center gap-1.5 font-heading cursor-pointer ${
+            className={`w-full sm:w-auto justify-center px-4 py-2 min-h-[42px] sm:min-h-[40px] rounded-full text-xs font-bold transition-all flex items-center gap-1.5 font-heading cursor-pointer ${
               activeTab === 'handovers'
                 ? 'bg-[#101820] text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-900'
