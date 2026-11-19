@@ -36,7 +36,7 @@ export function playNotificationChime() {
 
 export const playReminderChime = playNotificationChime;
 
-export function sendBrowserNotification(title, options = {}) {
+export async function sendBrowserNotification(title, options = {}) {
   const dedupeKey = options.tag || options.dedupeKey;
   if (dedupeKey) {
     if (triggeredKeys.has(dedupeKey)) return null;
@@ -45,14 +45,40 @@ export function sendBrowserNotification(title, options = {}) {
 
   playNotificationChime();
 
-  if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-    return new Notification(title, {
-      body: options.body || '',
-      icon: '/favicon.svg',
-      ...options,
-    });
+  if (
+    typeof window === 'undefined' ||
+    !('Notification' in window) ||
+    Notification.permission !== 'granted'
+  ) {
+    return null;
   }
-  return null;
+
+  const notificationOptions = {
+    body: options.body || '',
+    icon: '/favicon.svg',
+    badge: '/favicon.svg',
+    ...options,
+  };
+
+  // 1. Android Chrome requires ServiceWorkerRegistration.showNotification()
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      if (registration && typeof registration.showNotification === 'function') {
+        return registration.showNotification(title, notificationOptions);
+      }
+    } catch (swErr) {
+      console.warn('ServiceWorker showNotification failed, trying fallback:', swErr);
+    }
+  }
+
+  // 2. Desktop fallback (standard Notification constructor)
+  try {
+    return new Notification(title, notificationOptions);
+  } catch (err) {
+    console.warn('Browser Notification constructor error:', err);
+    return null;
+  }
 }
 
 export const fireDoseNotification = ({ title, body, dedupeKey }) =>
