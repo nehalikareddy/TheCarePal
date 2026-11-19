@@ -188,10 +188,10 @@ export default function PatientBanner({
       </div>
 
       {/* Main Patient Banner Card */}
-      <div className="bg-[#101820] text-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-[0_4px_16px_rgba(0,0,0,0.16)] border border-slate-700/60">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[#101820] text-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-[0_4px_16px_rgba(0,0,0,0.16)] border border-slate-700/60 overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-w-0">
           {/* Patient Profile Details */}
-          <div className="flex items-start gap-3.5 sm:gap-4">
+          <div className="flex items-start gap-3.5 sm:gap-4 flex-1 min-w-0">
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
               {patient.profilePicture ? (
                 <img
@@ -206,28 +206,28 @@ export default function PatientBanner({
               )}
             </div>
 
-            <div className="min-w-0">
-              <h1 className="text-lg sm:text-2xl font-bold text-white tracking-tight font-heading flex items-center gap-2 flex-wrap">
-                <span>{patient.name}</span>
-                <span className="text-slate-400 font-normal text-xs sm:text-sm">({patient.age} yrs)</span>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-2xl font-bold text-white tracking-tight font-heading flex items-center gap-2 flex-wrap min-w-0">
+                <span className="break-words">{patient.name}</span>
+                <span className="text-slate-400 font-normal text-xs sm:text-sm shrink-0">({patient.age} yrs)</span>
               </h1>
 
-              <div className="flex flex-col gap-0.5 mt-1.5 sm:mt-2 text-xs sm:text-[13px] text-slate-300 font-medium">
-                <div>
+              <div className="flex flex-col gap-0.5 mt-1.5 sm:mt-2 text-xs sm:text-[13px] text-slate-300 font-medium min-w-0">
+                <div className="min-w-0 break-words">
                   Condition: <span className="text-white font-semibold">{patient.condition || 'Home Care Assistance'}</span>
                 </div>
                 {patient.emergencyContact && (
-                  <div>
+                  <div className="min-w-0 break-words">
                     Emergency: <span className="text-emerald-300 font-semibold">{patient.emergencyContact}</span>
                   </div>
                 )}
                 {patient.address && (
-                  <div className="truncate max-w-[280px] sm:max-w-none">
+                  <div className="min-w-0 text-slate-300 break-words line-clamp-2" title={patient.address}>
                     Location: <span className="text-slate-200">{patient.address}</span>
                   </div>
                 )}
                 {patient.allergies && (
-                  <div>
+                  <div className="min-w-0 break-words">
                     Allergies: <span className="text-rose-300 font-medium">{patient.allergies}</span>
                   </div>
                 )}
@@ -236,11 +236,11 @@ export default function PatientBanner({
           </div>
 
           {/* 1-Click Copyable 6-Digit Care Code & Action Buttons */}
-          <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto items-stretch sm:items-center mt-2 sm:mt-0">
+          <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto items-stretch sm:items-center mt-2 sm:mt-0 shrink-0">
             <button
               type="button"
               onClick={handleCopyCode}
-              className="flex-1 sm:flex-initial flex items-center justify-between px-3 py-2 bg-white/5 border border-white/15 rounded-xl sm:rounded-full hover:bg-white/10 transition-all min-h-[44px] text-left group active:scale-[0.98]"
+              className="flex-1 sm:flex-initial shrink-0 flex items-center justify-between gap-2.5 px-3 py-2 bg-white/5 border border-white/15 rounded-xl sm:rounded-full hover:bg-white/10 transition-all min-h-[44px] text-left group active:scale-[0.98]"
               title="Click to copy Care Code for nurse or family sharing"
             >
               <div className="flex flex-col min-w-0 pr-1">
@@ -271,7 +271,7 @@ export default function PatientBanner({
                   if (onEditPatient) onEditPatient(patient);
                   else setIsEditPatientOpen(true);
                 }}
-                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl sm:rounded-full bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 font-heading min-h-[44px] active:scale-[0.98]"
+                className="flex-1 sm:flex-initial shrink-0 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl sm:rounded-full bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 font-heading min-h-[44px] active:scale-[0.98]"
                 title="Edit Patient Details"
               >
                 <Pencil className="w-3.5 h-3.5 text-[#3fb6ad] shrink-0" />
@@ -284,7 +284,7 @@ export default function PatientBanner({
               <button
                 type="button"
                 onClick={handleOpenCareTeam}
-                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl sm:rounded-full bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 font-heading min-h-[44px] active:scale-[0.98] relative"
+                className="flex-1 sm:flex-initial shrink-0 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl sm:rounded-full bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 font-heading min-h-[44px] active:scale-[0.98] relative"
                 title="Manage linked caregivers & security"
               >
                 <Users className="w-4 h-4 text-[#3fb6ad] shrink-0" />
