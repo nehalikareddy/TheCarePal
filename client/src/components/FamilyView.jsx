@@ -16,7 +16,7 @@ import {
 import api from '../services/api';
 import HandoverNotesPanel from './HandoverNotesPanel';
 
-export default function FamilyView({ patient, user }) {
+export default function FamilyView({ patient, user, refreshTrigger }) {
   const [adherenceData, setAdherenceData] = useState(null);
   const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,9 +43,13 @@ export default function FamilyView({ patient, user }) {
   const [medError, setMedError] = useState('');
 
   const fetchFamilyData = async () => {
-    if (!patient) {
+    if (!patient?._id) {
       setLoading(false);
       return;
+    }
+    // Only show full loading spinner on initial load when adherenceData is null
+    if (!adherenceData) {
+      setLoading(true);
     }
     try {
       const [adhRes, medRes] = await Promise.all([
@@ -63,7 +67,7 @@ export default function FamilyView({ patient, user }) {
 
   useEffect(() => {
     fetchFamilyData();
-  }, [patient]);
+  }, [patient?._id, refreshTrigger]);
 
   const handleRxFileSelect = async (e) => {
     const file = e.target.files?.[0];
@@ -170,7 +174,7 @@ export default function FamilyView({ patient, user }) {
     }
   };
 
-  if (loading) {
+  if (loading && !adherenceData) {
     return (
       <div className="py-12 text-center text-slate-500 flex flex-col items-center">
         <div className="w-8 h-8 border-3 border-[#3fb6ad] border-t-transparent rounded-full animate-spin mb-3" />

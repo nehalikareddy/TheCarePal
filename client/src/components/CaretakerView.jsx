@@ -20,7 +20,7 @@ import api from '../services/api';
 import SkipReasonModal from './SkipReasonModal';
 import HandoverNotesPanel from './HandoverNotesPanel';
 
-export default function CaretakerView({ patient, user }) {
+export default function CaretakerView({ patient, user, refreshTrigger }) {
   const [scheduleData, setScheduleData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -49,9 +49,13 @@ export default function CaretakerView({ patient, user }) {
   const viewingRxDose = rxModalList[currentRxIndex] || null;
 
   const fetchTodaySchedule = async () => {
-    if (!patient) {
+    if (!patient?._id) {
       setLoading(false);
       return;
+    }
+    // Only show full loading spinner on initial load when scheduleData is null
+    if (!scheduleData) {
+      setLoading(true);
     }
     try {
       const res = await api.get(`/schedule/today/${patient._id}`);
@@ -67,7 +71,7 @@ export default function CaretakerView({ patient, user }) {
 
   useEffect(() => {
     fetchTodaySchedule();
-  }, [patient]);
+  }, [patient?._id, refreshTrigger]);
 
   // Handle Mark Given
   const handleMarkGiven = async (dose) => {
@@ -132,7 +136,7 @@ export default function CaretakerView({ patient, user }) {
     }
   };
 
-  if (loading) {
+  if (loading && !scheduleData) {
     return (
       <div className="py-12 text-center text-slate-500 flex flex-col items-center">
         <div className="w-8 h-8 border-3 border-[#3fb6ad] border-t-transparent rounded-full animate-spin mb-3" />

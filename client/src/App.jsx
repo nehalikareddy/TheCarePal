@@ -767,15 +767,17 @@ export default function App() {
             {/* Dynamic View: Caretaker Checklist vs Family Overview based on genuine user.role */}
             {user.role === 'caretaker' ? (
               <CaretakerView
-                key={`caretaker-${currentPatient?._id}-${refreshTrigger}`}
+                key={`caretaker-${currentPatient?._id}`}
                 patient={currentPatient}
                 user={user}
+                refreshTrigger={refreshTrigger}
               />
             ) : (
               <FamilyView
-                key={`family-${currentPatient?._id}-${refreshTrigger}`}
+                key={`family-${currentPatient?._id}`}
                 patient={currentPatient}
                 user={user}
+                refreshTrigger={refreshTrigger}
               />
             )}
           </>
