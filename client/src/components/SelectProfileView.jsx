@@ -46,7 +46,7 @@ export default function SelectProfileView({
               </span>
             )}
           </div>
-          <h1 className="text-3xl sm:text-4xl font-display italic font-medium text-[#101820] mt-1.5 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight text-[#101820] mt-1">
             Welcome back, {user?.name || 'Caregiver'}!
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
