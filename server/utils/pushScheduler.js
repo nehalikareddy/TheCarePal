@@ -7,7 +7,7 @@ const { formatDateIST, formatTimeIST } = require('./dateIST');
 const sentPushKeys = new Set();
 
 function initWebPush() {
-  const subject = process.env.VAPID_SUBJECT || 'mailto:admin@thecarepal.app';
+  const subject = process.env.VAPID_SUBJECT || 'https://the-care-pal-amr8.vercel.app';
   const publicKey = process.env.VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
 
