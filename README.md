@@ -17,123 +17,43 @@
 
 ---
 
-## 👥 Seeded 1-Click Demo Accounts
-
-For immediate evaluation without manual signup, use either of the pre-configured accounts:
-
-| Role | Email | Password | Primary Linked Patients |
-| :--- | :--- | :--- | :--- |
-| **Family Admin** | `sakethreddy@gmail.com` | `saketh` | **Raghavendra Rao** (76 yrs, Post-Stroke & Hypertension)<br>**Meenakshi Iyer** (68 yrs, Type 2 Diabetes) |
-| **Caretaker / Nurse** | `nehalikareddy@gmail.com` | `nehalika` | **Raghavendra Rao** & **Meenakshi Iyer** |
-
-*Both portals are fully responsive on mobile (iPhone/Android) and desktop.*
-
----
-
 ## System Flowcharts
 
-### 1. Family Member / Patient Flow
+### 1. Family Flow
 
 ```mermaid
 flowchart TD
-    A([Start: Open TheCarePal]) --> B[Sign Up / Login as Family]
-    B --> C[Select Patient Profile Hub]
-    C --> D{Existing Patient?}
-
-    D -- No: Click + Add New Patient --> E{Who is Setting Up?}
-    E -- Family Member --> F[Enter Name & Relation to Patient]
-    E -- Patient Self --> G[Proceed Directly]
-    F --> H[Fill Patient Details: Name, Age, Care Type, Emergency Contact, Allergies, Address, Optional Photo]
-    G --> H
-    H --> I[Patient Created + Unique 6-Digit Care Code Generated]
-    I --> J[Open Patient Care Dashboard]
-
-    D -- Yes: Click Patient Card --> J
-
-    J --> K[Share 6-Digit Care Code with Nurse]
-    K --> L{Nurse Requests Access?}
-    L -- Yes: Chime + Banner Pops Up --> M{Review Nurse Credentials}
-    M -- Approve --> N[Nurse Unlocks Patient in Real Time]
-    M -- Reject --> O[Request Declined & Nurse Notified]
-
-    J --> P[Meds Tab: Add Medicine + Per-Medicine Rx Photo + Stock Tracking]
-    J --> Q[Adherence Tab: 7-Day Score, Streak Circles, 3x7 Shift Heatmap & Skipped Feed]
-    J --> R[Handovers Tab: Read & Post Day / Night Shift Notes]
-    J --> S[Care Team Modal: Remove Caregiver or Rotate Care Code]
-    J --> T[Edit Profile: Update Patient Details Anytime]
+    A([Login / Sign Up as Family]) --> B[Select Patient Profile Hub]
+    B --> C[Create or Open Patient + 6-Digit Care Code]
+    C --> D[Approve / Reject Nurse Requests]
+    D --> E[Add Medicines + Upload Rx Photos]
+    E --> F[Track 7-Day Adherence, Shift Heatmap & Low Stock]
+    F --> G[Read & Post Shift Handover Notes]
 ```
 
 ### 2. Nurse / Caretaker Flow
 
 ```mermaid
 flowchart TD
-    A([Start: Open TheCarePal]) --> B[Sign Up / Login as Nurse / Caretaker]
-    B --> C{First-Time Login?}
-    C -- Yes --> D[Complete Caretaker Profile: Photo, Name, Age, Sex, Qualification, Address]
-    C -- No --> E[Select Patient Profile Hub]
-    D --> E
-
-    E --> F{Patient Already Approved?}
-    F -- No: Enter 6-Digit Care Code --> G[Pending Approval Card Shown — Records Locked]
-    G --> H{Family Decision via Socket.IO / 5s Sync}
-    H -- Rejected --> I[Declined Notice Shown]
-    H -- Approved --> J[Patient Card Unlocks Automatically]
-
-    F -- Yes: Click Patient Card --> J
-
-    J --> K[Open Care Dashboard: Check Allergies, Emergency Contact & Location]
-    K --> L[Today's Schedule: Morning / Afternoon / Night]
-    L --> M{Verify Prescription?}
-    M -- Click View Prescription --> N[Open Full-Screen Prescription Lightbox]
-    N --> O{Log Dose}
-    M -- No --> O
-
-    O -- Tap Given --> P[Dose Logged + Stock -1 + Card Locked]
-    O -- Tap Skipped --> Q[Choose Skip Reason Chip + Dose Logged + Card Locked]
-
-    K --> R[Post Shift Handover Note: Day to Night / Night to Day]
-    K --> S[Receive VAPID Push Notifications & 15-Min Overdue Chime]
+    A([Login / Sign Up as Nurse]) --> B[Complete Profile & Enter 6-Digit Care Code]
+    B --> C[Wait for Family Approval]
+    C --> D[Open Patient Dashboard & Today's Schedule]
+    D --> E[Verify Rx Lightbox & Log Given / Skipped]
+    E --> F[Post Day / Night Shift Handover Notes]
 ```
 
-### 3. Combined Real-Time Architecture
+### 3. Combined System Flow
 
 ```mermaid
-flowchart LR
-    subgraph Family["Family Member (Browser 1)"]
-        F1[Create Patient & Share Care Code]
-        F2[Add Medicine + Upload Rx to Cloudinary]
-        F3[Hear Chime & Approve / Reject Nurse]
-        F4[View 7-Day Score, Shift Heatmap & Low Stock]
-        F5[Care Team Revocation / Code Rotation]
-    end
-
-    subgraph Backend["Express + MongoDB Atlas + Socket.IO + Web Push (Render)"]
-        B1[(MongoDB: Users, Patients, Medicines, DoseLogs, Handovers)]
-        B2((Socket.IO Rooms: user_id & patient_id))
-        B3[60s IST VAPID Push Scheduler]
-    end
-
-    subgraph Nurse["Nurse / Caretaker (Browser 2)"]
-        N1[Complete Profile & Enter Care Code]
-        N2[Pending Approval Gate]
-        N3[View Schedule & Rx Lightbox]
-        N4[Mark Given / Skipped with Reason]
-        N5[Post Day / Night Handover Notes]
-    end
-
-    F1 --> B1
-    N1 --> B1
-    N1 -- accessRequested + Chime --> B2 --> F3
-    F3 -- accessApproved --> B2 --> N2 --> N3
-    F2 --> B1
-    F2 -- scheduleUpdated --> B2 --> N3
-    N4 --> B1
-    N4 -- scheduleUpdated + Stock -1 --> B2 --> F4
-    N5 --> B1
-    N5 -- handoverAdded --> B2 --> F4
-    F5 -- accessRevoked / patientUpdated --> B2 --> N3
-    B1 --> B3 -. Closed-Tab Push .-> Family
-    B1 --> B3 -. Closed-Tab Push .-> Nurse
+flowchart TD
+    A[Family App: Add Meds, Approve Nurse, View Adherence] --> B[Express API + MongoDB Atlas]
+    C[Nurse App: Log Doses, View Rx, Post Handovers] --> B
+    B --> D[Socket.IO Real-Time Sync]
+    B --> E[60s IST VAPID Web Push Scheduler]
+    D --> A
+    D --> C
+    E -. Closed-Tab Reminders .-> A
+    E -. Closed-Tab Reminders .-> C
 ```
 
 ---
