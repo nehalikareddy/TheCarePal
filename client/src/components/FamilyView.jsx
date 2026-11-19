@@ -479,154 +479,182 @@ export default function FamilyView({ patient, user, refreshTrigger }) {
       {/* Main Tab Content */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          {/* Adherence Hero Card */}
-          <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-[#e6ecf1]">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-              {/* Adherence Progress Ring & Score */}
-              <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-5">
-                <div className="relative flex items-center justify-center shrink-0">
-                  <svg className="w-24 h-24 sm:w-28 sm:h-28 transform -rotate-90">
-                    <circle
-                      cx="56"
-                      cy="56"
-                      r="46"
-                      stroke="#E2E8F0"
-                      strokeWidth="10"
-                      fill="transparent"
-                    />
-                    <circle
-                      cx="56"
-                      cy="56"
-                      r="46"
-                      stroke={
-                        !hasScheduledDoses
-                          ? '#CBD5E1'
-                          : weeklyRate >= 85
-                          ? '#3fb6ad'
-                          : weeklyRate >= 70
-                          ? '#D97706'
-                          : '#DC2626'
-                      }
-                      strokeWidth="10"
-                      strokeDasharray={289}
-                      strokeDashoffset={hasScheduledDoses ? 289 - (289 * weeklyRate) / 100 : 289}
-                      strokeLinecap="round"
-                      fill="transparent"
-                      className="transition-all duration-1000 ease-out"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span className="text-xl sm:text-2xl font-extrabold text-[#101820] tracking-tight font-heading">
-                      {hasScheduledDoses ? `${weeklyRate}%` : '--'}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase font-heading">Adherence</span>
-                  </div>
+          {/* 2-Card Mobile-First Adherence & Shift Consistency Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* Card 1: Weekly Adherence Score + 7-Day Streak Circles */}
+            <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_2px_10px_rgba(15,26,34,0.04)] border border-[#E2E8F0] flex flex-col justify-between">
+              <div>
+                <span className="text-xs font-semibold text-slate-500 font-heading">
+                  Weekly Adherence Score
+                </span>
+                <div className="flex items-baseline gap-2.5 mt-1">
+                  <span className="text-3xl sm:text-4xl font-extrabold text-[#101820] tracking-tight font-heading">
+                    {hasScheduledDoses ? `${weeklyRate}%` : '--'}
+                  </span>
+                  <span className="text-lg sm:text-xl font-bold text-[#101820] font-heading">
+                    Weekly Score
+                  </span>
                 </div>
+                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-[#4DB6AC] shrink-0" />
+                  <span>
+                    {!hasScheduledDoses
+                      ? 'Add medicines to start tracking 7-day adherence'
+                      : weeklyRate >= 85
+                      ? 'Consistent routine across the past 7 days'
+                      : 'Review skipped doses below for scheduling gaps'}
+                  </span>
+                </p>
 
-                <div>
-                  <div className="flex items-center justify-center sm:justify-start gap-1.5">
-                    <TrendingUp className="w-4 h-4 text-[#3fb6ad]" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400 font-heading">
-                      7-Day Adherence Score
-                    </span>
-                  </div>
-                  <h3 className="text-base sm:text-lg font-bold text-[#101820] mt-0.5 font-heading">
-                    {!hasScheduledDoses
-                      ? 'No Doses Scheduled Yet'
-                      : weeklyRate >= 90
-                      ? 'Excellent Medication Routine'
-                      : weeklyRate >= 75
-                      ? 'Good Routine Adherence'
-                      : 'Needs Immediate Attention'}
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto sm:mx-0">
-                    {!hasScheduledDoses
-                      ? 'Add medicines to start tracking 7-day adherence and daily trends.'
-                      : weeklyRate >= 90
-                      ? 'The patient has successfully taken prescribed medications on time with minimal skips.'
-                      : 'Review the skipped doses log below to address patient refusal or scheduling gaps.'}
-                  </p>
+                {/* 7-Day Streak Circles */}
+                <div className="grid grid-cols-7 gap-1.5 sm:gap-2 my-6 text-center">
+                  {dailyTrends.map((day) => {
+                    const dayTotal = day.total ?? day.scheduled ?? 0;
+                    const dayGiven = day.given ?? 0;
+                    const daySkipped = day.skipped ?? 0;
+                    const dayRate = dayTotal > 0 ? Math.round((dayGiven / dayTotal) * 100) : 0;
+                    const isComplete = dayTotal > 0 && dayGiven >= dayTotal && daySkipped === 0;
+                    const hasSkipped = daySkipped > 0;
+                    const isPartial = !isComplete && !hasSkipped && dayGiven > 0;
+
+                    return (
+                      <div
+                        key={day.date}
+                        className="flex flex-col items-center gap-1.5"
+                        title={`${day.label || day.dayName}: ${dayGiven}/${dayTotal} given, ${daySkipped} skipped`}
+                      >
+                        {isComplete ? (
+                          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#4DB6AC] text-white flex items-center justify-center shadow-xs">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </div>
+                        ) : hasSkipped ? (
+                          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#F28B82]/80 text-white flex items-center justify-center shadow-xs">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="18" y1="6" x2="6" y2="18" />
+                              <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                          </div>
+                        ) : isPartial ? (
+                          <div className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center">
+                            <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                              <circle cx="18" cy="18" r="15" fill="none" stroke="#E2E8F0" strokeWidth="3.5" />
+                              <circle
+                                cx="18"
+                                cy="18"
+                                r="15"
+                                fill="none"
+                                stroke="#4DB6AC"
+                                strokeWidth="3.5"
+                                strokeDasharray={94.2}
+                                strokeDashoffset={94.2 - (94.2 * dayRate) / 100}
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                          </div>
+                        ) : (
+                          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-[3px] border-slate-200 bg-white" />
+                        )}
+                        <span className="text-[11px] font-semibold text-slate-600 font-heading">
+                          {day.dayName || day.label?.split(',')[0]}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Weekly Quick Metrics */}
-              <div className="grid grid-cols-3 sm:grid-cols-1 gap-2.5 border-t sm:border-t-0 sm:border-l border-slate-100 pt-4 sm:pt-0 sm:pl-6 text-center sm:text-left">
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase font-heading">Given Doses</span>
-                  <div className="text-base font-extrabold text-[#3fb6ad] font-heading">
-                    {adherenceData?.totalGiven ?? adherenceData?.summary?.totalGiven ?? 0}
-                  </div>
+              {/* 3 Soft Pastel Summary Pills */}
+              <div className="pt-4 border-t border-slate-100 grid grid-cols-3 gap-2 text-center">
+                <div className="py-2 px-2.5 rounded-full bg-[#ECFDF5] text-[#0F766E] text-xs font-bold font-heading">
+                  <span>{adherenceData?.totalGiven ?? 0}</span>{' '}
+                  <span className="font-medium">Given</span>
                 </div>
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase font-heading">Skipped Doses</span>
-                  <div className="text-base font-extrabold text-red-600 font-heading">
-                    {adherenceData?.totalSkipped ?? adherenceData?.summary?.totalSkipped ?? 0}
-                  </div>
+                <div className="py-2 px-2.5 rounded-full bg-[#FFF1F2] text-[#BE123C] text-xs font-bold font-heading">
+                  <span>{adherenceData?.totalSkipped ?? 0}</span>{' '}
+                  <span className="font-medium">Skipped</span>
                 </div>
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase font-heading">Total Slots</span>
-                  <div className="text-base font-extrabold text-[#101820] font-heading">
-                    {adherenceData?.totalScheduled ?? adherenceData?.summary?.totalScheduled ?? 0}
-                  </div>
+                <div className="py-2 px-2.5 rounded-full bg-[#F1F5F9] text-slate-700 text-xs font-bold font-heading">
+                  <span>{adherenceData?.totalScheduled ?? 0}</span>{' '}
+                  <span className="font-medium">Total</span>
                 </div>
               </div>
             </div>
 
-            {/* 7-Day Completion Bar Chart */}
-            <div className="mt-8 pt-6 border-t border-slate-100">
-              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4 font-heading">
-                Daily Completion Trends (Past 7 Days)
-              </h4>
+            {/* Card 2: 3x7 Shift Consistency Heatmap */}
+            <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_2px_10px_rgba(15,26,34,0.04)] border border-[#E2E8F0] flex flex-col justify-between">
+              <div>
+                <h3 className="text-base font-bold text-[#101820] font-heading mb-4">
+                  Shift Consistency{' '}
+                  {dailyTrends.length >= 2 && (
+                    <span className="font-semibold text-slate-500">
+                      ({dailyTrends[0].dayName} – {dailyTrends[dailyTrends.length - 1].dayName})
+                    </span>
+                  )}
+                </h3>
 
-              <div className="grid grid-cols-7 gap-1 sm:gap-3 text-center overflow-x-hidden">
-                {dailyTrends.map((day) => {
-                  const dayTotal = day.total ?? day.scheduled ?? day.dayTotal ?? 0;
-                  const dayRate =
-                    day.rate !== undefined && day.rate !== null
-                      ? day.rate
-                      : day.adherenceRate !== undefined && day.adherenceRate !== null
-                      ? day.adherenceRate
-                      : null;
-                  const hasDayDoses = dayTotal > 0 && dayRate !== null;
-
-                  const rate = hasDayDoses ? Math.round(dayRate) : null;
-                  const heightPct = hasDayDoses ? Math.max(15, rate) : 0;
-                  const isHealthy = hasDayDoses && rate >= 85;
-                  const isModerate = hasDayDoses && rate >= 70 && rate < 85;
-
-                  return (
-                    <div key={day.date} className="flex flex-col items-center min-w-0">
-                      <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 mb-1 font-heading">
-                        {hasDayDoses ? `${rate}%` : '—'}
-                      </span>
-
-                      {/* Bar Container */}
-                      <div className="w-full bg-slate-100 h-20 sm:h-24 rounded-lg sm:rounded-xl p-0.5 sm:p-1 flex flex-col justify-end">
-                        {hasDayDoses ? (
-                          <div
-                            style={{ height: `${heightPct}%` }}
-                            className={`w-full rounded-md sm:rounded-lg transition-all duration-500 ${
-                              isHealthy
-                                ? 'bg-[#3fb6ad]'
-                                : isModerate
-                                ? 'bg-amber-500'
-                                : 'bg-red-500'
-                            }`}
-                            title={`${day.dayName || day.label}: ${day.given || 0}/${dayTotal} doses given`}
-                          />
-                        ) : (
-                          <div
-                            className="w-full h-1 bg-slate-200/60 rounded-full"
-                            title={`${day.dayName || day.label}: No scheduled doses`}
-                          />
-                        )}
-                      </div>
-
-                      <span className="text-[10px] sm:text-xs font-bold text-[#101820] mt-1.5 sm:mt-2 font-heading truncate w-full">{day.dayName || day.label?.split(',')[0]}</span>
-                      <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium truncate w-full">{day.displayDate || ''}</span>
+                {/* Column Day Letters */}
+                <div className="grid grid-cols-[80px_repeat(7,1fr)] sm:grid-cols-[92px_repeat(7,1fr)] items-center gap-1.5 sm:gap-2 mb-2.5">
+                  <div />
+                  {dailyTrends.map((day) => (
+                    <div
+                      key={`hdr-${day.date}`}
+                      className="text-center text-xs font-bold text-slate-600 font-heading"
+                    >
+                      {(day.dayName || '').slice(0, 1)}
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
+
+                {/* Shift Rows: Morning, Afternoon, Night */}
+                <div className="space-y-2.5">
+                  {['Morning', 'Afternoon', 'Night'].map((shiftName) => (
+                    <div
+                      key={shiftName}
+                      className="grid grid-cols-[80px_repeat(7,1fr)] sm:grid-cols-[92px_repeat(7,1fr)] items-center gap-1.5 sm:gap-2"
+                    >
+                      <span className="text-xs sm:text-sm font-medium text-slate-700 font-heading">
+                        {shiftName}
+                      </span>
+                      {dailyTrends.map((day) => {
+                        const status = day.shifts?.[shiftName] || 'pending';
+                        const cellClass =
+                          status === 'given'
+                            ? 'bg-[#4DB6AC] border border-[#3FA49A]'
+                            : status === 'skipped'
+                            ? 'bg-[#F28B82] border border-[#E57368]'
+                            : status === 'none'
+                            ? 'bg-slate-50 border border-slate-100'
+                            : 'bg-[#F1F5F9] border border-dashed border-slate-300';
+
+                        return (
+                          <div
+                            key={`${shiftName}-${day.date}`}
+                            title={`${day.label || day.dayName} • ${shiftName}: ${status}`}
+                            className={`aspect-square w-full max-w-[38px] mx-auto rounded-xl transition-all ${cellClass}`}
+                          />
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Clean Legend */}
+              <div className="pt-4 mt-5 border-t border-slate-100 flex flex-wrap items-center gap-4 text-xs text-slate-600 font-medium">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-[#4DB6AC]" />
+                  <span>Given</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-[#F28B82]" />
+                  <span>Skipped</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-[#F1F5F9] border border-dashed border-slate-400" />
+                  <span>Pending</span>
+                </div>
               </div>
             </div>
           </div>

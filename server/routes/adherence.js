@@ -6,6 +6,13 @@ const { formatDateIST, shiftDaysIST } = require('../utils/dateIST');
 
 const router = express.Router();
 
+function getTimeBucket(timeStr = '08:00') {
+  const hour = parseInt(String(timeStr).split(':')[0], 10);
+  if (hour >= 5 && hour < 12) return 'Morning';
+  if (hour >= 12 && hour < 17) return 'Afternoon';
+  return 'Night';
+}
+
 router.get('/weekly/:patientId', authMiddleware, async (req, res) => {
   try {
     const { patientId } = req.params;
@@ -49,6 +56,39 @@ router.get('/weekly/:patientId', authMiddleware, async (req, res) => {
       const dayTotal = denominator;
       const rate = dayTotal > 0 ? Math.round((givenCount / dayTotal) * 100) : null;
 
+      const shiftStats = {
+        Morning: { scheduled: 0, given: 0, skipped: 0 },
+        Afternoon: { scheduled: 0, given: 0, skipped: 0 },
+        Night: { scheduled: 0, given: 0, skipped: 0 },
+      };
+
+      for (const med of medicines) {
+        if (med.startDate <= dateStr && med.endDate >= dateStr) {
+          for (const t of med.times || []) {
+            shiftStats[getTimeBucket(t)].scheduled += 1;
+          }
+        }
+      }
+
+      for (const log of dayLogs) {
+        const bucket = getTimeBucket(log.scheduledTime);
+        if (log.status === 'given') shiftStats[bucket].given += 1;
+        if (log.status === 'skipped') shiftStats[bucket].skipped += 1;
+      }
+
+      const resolveShiftStatus = ({ scheduled, given, skipped }) => {
+        if (scheduled === 0 && given === 0 && skipped === 0) return 'none';
+        if (skipped > 0) return 'skipped';
+        if (given > 0 && given >= scheduled) return 'given';
+        return 'pending';
+      };
+
+      const shifts = {
+        Morning: resolveShiftStatus(shiftStats.Morning),
+        Afternoon: resolveShiftStatus(shiftStats.Afternoon),
+        Night: resolveShiftStatus(shiftStats.Night),
+      };
+
       dailyStats.push({
         date: dateStr,
         dayName,
@@ -61,6 +101,7 @@ router.get('/weekly/:patientId', authMiddleware, async (req, res) => {
         rate,
         adherenceRate: rate,
         percentage: rate,
+        shifts,
       });
     }
 
